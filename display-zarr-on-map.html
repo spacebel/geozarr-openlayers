@@ -1,0 +1,103 @@
+<html>
+
+<head>
+    <script src="https://unpkg.com/zarr/zarr.umd.js"></script>	
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.9.0/css/ol.css" type="text/css">
+	<link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" type="text/css">
+    <style>
+		.map {
+			height: 60%;
+			width: 100%;
+			padding-bottom: 10px;
+		}
+	  
+		#loadingBar {
+			top:0;  
+			left:100px;
+			width: 80%;
+			height: 60%;
+			display:table;
+			background: rgba(0, 0, 0, 0.6);
+			position:absolute;
+		}
+		#loadingBar i {
+			display:table-cell;
+			vertical-align:middle;
+			text-align:center;
+		}
+		.loading-icon {
+			font-size: 50px;
+			color:white;
+			height: 50px;
+			width: 50px;	
+		}
+	
+		div.inputForm{		
+			border: 3px solid green;
+			padding: 10px;		
+		}
+		
+		label {
+			float: left;
+			width: 100px;
+			padding-right: 15px;
+			font-family: 'Source Sans Pro',sans-serif;
+			font-size: 14px;
+		}
+
+		input,select {
+			font-family: 'Source Sans Pro',sans-serif;
+			font-size: 14px;
+		}
+		
+		span.instruction{
+			font-style: italic;
+		}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.9.0/build/ol.js"></script>	
+	
+	<script src="./proj4.js"></script>
+	<script src="./main.js"></script>
+</head>
+
+<body onload="startup()">
+	<div id="map" class="map"></div>
+	 <div id="loadingBar" style="display:none;"> 
+        <i class="fa fa-spinner fa-spin loading-icon"></i>
+    </div>
+	
+	<div class="inputForm">
+		<span class="instruction">Enter the Zarr information that you wish to show on the map</span>
+		<br/>
+		<br/>
+		<label for="zarrUrl">Zazz URL:</label>		
+		<input type="text" id="zarrUrl" name="zarrUrl" size="100"/>
+		<br/>
+		<br/>
+		<label>RGB bands:</label>		
+		<input type="text" id="redBand" name="redBand" size="8"/>		
+		<input type="text" id="greenBand" name="greenBand" size="8"/>
+		<input type="text" id="blueBand" name="blueBand" size="8"/>
+		<br/>
+		<br/>
+		<label for="scaleFactor">Scale factor:</label>		
+		<input type="text" id="scaleFactor" name="scaleFactor" value="40"/>
+		<br/>
+		<br/>		
+		<label for="projection">Projection:</label>	
+		<select name="projection" id="projection">		  
+			<option value="EPSG:32628">EPSG:32628</option>
+			<option value="EPSG:32633">EPSG:32633</option>		  
+		</select>			
+		<br/><br/>
+		<input type="button" value="Apply" onclick="applyChange()"/>		
+	</div>	 
+    <script>
+		var map;
+		var imageURL;
+		var extent = [];
+	</script>
+</body>
+
+</html>
