@@ -6,9 +6,13 @@
 	<link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" type="text/css">
     <style>
 		.map {
-			height: 60%;
+			height: 70%;
 			width: 100%;
 			padding-bottom: 10px;
+		}
+		
+		div.map div.ol-zoom {
+			top: 30px;
 		}
 	  
 		#loadingBar {
@@ -32,14 +36,21 @@
 			width: 50px;	
 		}
 	
-		div.inputForm{		
+		div.inputForm{
 			border: 3px solid green;
 			padding: 10px;		
 		}
 		
+		div.mapControls input{
+			color: #fff;
+			background-color: #17a2b8;
+			font-family: 'Source Sans Pro',sans-serif;
+			font-size: 12px;
+		}				
+		
 		label {
 			float: left;
-			width: 100px;
+			width: 110px;
 			padding-right: 15px;
 			font-family: 'Source Sans Pro',sans-serif;
 			font-size: 14px;
@@ -62,6 +73,17 @@
 </head>
 
 <body onload="startup()">
+	<div class="mapControls">
+	<input type="button" id="zoomBtn1" value="Zoom: 1" onclick="changeZoomLevel(1)"/>
+	<input type="button" id="zoomBtn2" value="Zoom: 2" onclick="changeZoomLevel(2)"/>
+	<input type="button" id="zoomBtn3" value="Zoom: 3" onclick="changeZoomLevel(3)"/>
+	<input type="button" id="zoomBtn4" value="Zoom: 4" onclick="changeZoomLevel(4)"/>
+	<input type="button" id="zoomBtn5" value="Zoom: 5" onclick="changeZoomLevel(5)"/>
+	<input type="button" id="zoomBtn6" value="Zoom: 6" onclick="changeZoomLevel(6)"/>
+	<input type="button" id="zoomBtn7" value="Zoom: 7" onclick="changeZoomLevel(7)"/>
+	<input type="button" id="zoomBtn8" value="Zoom: 8" onclick="changeZoomLevel(8)"/>
+	<input type="button" id="zoomBtn9" value="Zoom: 9" onclick="changeZoomLevel(9)"/>
+	</div>
 	<div id="map" class="map"></div>
 	 <div id="loadingBar" style="display:none;"> 
         <i class="fa fa-spinner fa-spin loading-icon"></i>
@@ -72,24 +94,13 @@
 		<br/>
 		<br/>
 		<label for="zarrUrl">Zazz URL:</label>		
-		<input type="text" id="zarrUrl" name="zarrUrl" size="100"/>
+		<input type="text" id="zarrUrl" name="zarrUrl" size="100"/>		
 		<br/>
-		<br/>
+		<br/>		
 		<label>RGB bands:</label>		
 		<input type="text" id="redBand" name="redBand" size="8"/>		
 		<input type="text" id="greenBand" name="greenBand" size="8"/>
-		<input type="text" id="blueBand" name="blueBand" size="8"/>
-		<br/>
-		<br/>
-		<label for="scaleFactor">Scale factor:</label>		
-		<input type="text" id="scaleFactor" name="scaleFactor" value="40"/>
-		<br/>
-		<br/>		
-		<label for="projection">Projection:</label>	
-		<select name="projection" id="projection">		  
-			<option value="EPSG:32628">EPSG:32628</option>
-			<option value="EPSG:32633">EPSG:32633</option>		  
-		</select>			
+		<input type="text" id="blueBand" name="blueBand" size="8"/>		
 		<br/><br/>
 		<input type="button" value="Apply" onclick="applyChange()"/>		
 	</div>	 
@@ -97,6 +108,10 @@
 		var map;
 		var imageURL;
 		var extent = [];
+		var zoomLevel = 4;
+		var zoomLevel = 4;
+		var zoomMin = 0;
+		var zoomMax = 9;
 	</script>
 </body>
 
