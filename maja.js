@@ -2,41 +2,37 @@
 	This function will be called at startup
 */
 async function startup(){
-	//var zarrUrl = "https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/s2_quicklook3";
+	//	initialize list of Zarr
+	zarrUrls.push(["https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/maja_v3_multiscales/T31UFR/20200121","T31UFR 21/01/2020"]);
+				
+	var zarrUrl = zarrUrls[currentIndex][0];
 	
-	//var zarrUrl = "https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/ndvi/c_gls_NDVI_202006010000_GLOBE_PROBAV_V2.2.1_subset.zarr";	
-	var zarrUrl = "https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/ndvi/c_gls_NDVI_202006010000_GLOBE_PROBAV_V2.2.1_subset_v3.zarr";	
-	
-	var redBand = "NDVI";
-	var greenBand = "NDVI";
-	var blueBand = "NDVI";		
-	
-	const rgbBands = ({ '': [redBand, greenBand, blueBand] });	
-	var projName = "EPSG:4326";	
-	var scaleFactor = 1;
-
-	/*
-		set default values to input fields
-	*/
-	setInputValue('zarrUrl',zarrUrl);		
-	setInputValue('redBand',redBand);
-	setInputValue('greenBand',greenBand);
-	setInputValue('blueBand',blueBand);
-	try{
 	// call loadZarr(...) function
-	await loadZarr(zarrUrl,rgbBands,scaleFactor);
+	await loadZarr(zarrUrl);
 	
 	// create a map to display the zarr image
-	createMap(projName,extent);
+	createMap();
 	
 	//map.getView().fit(extent);
 		
 	setCurrentZoomButton();
-	}catch(e){
-		console.log(e);
-	}
+	setDateInfo();
+	toggleNavButtons();
 }
 
+async function navigate(index){
+	var newIndex = currentIndex + index;	
+	if(newIndex < 0){
+		newIndex = 0;
+	}
+	if(newIndex > (zarrUrls.length -1)){
+		newIndex = zarrUrls.length -1;
+	}
+	currentIndex = newIndex;
+	await applyChange();
+	setDateInfo();
+	toggleNavButtons();
+}
 /**
 	This function will be called when user click on "Zoom" buttons
 */
@@ -47,7 +43,7 @@ async function changeZoomLevel(targetZoomLevel){
 	map.getView().setZoom(zoomLevel);
 	
 	// disable the current zoom button
-	for(var i = 1; i <= 9; i++){
+	for(var i = 1; i <= zoomMax; i++){
 		var btn = document.getElementById('zoomBtn' + i);
 		if(btn){
 			if(i != targetZoomLevel){
@@ -57,48 +53,17 @@ async function changeZoomLevel(targetZoomLevel){
 		}
 	}
 }
-/**
-	This function will be called when user click on "Apply" button to reload Zarr image with new input info
-*/
 
 async function applyChange(){
 	const loadingBar = document.getElementById('loadingBar');
 	loadingBar.style.display = 'table';
 	
-	var zarrUrl = getInputValue('zarrUrl');
-	//console.log("zarrUrl = " + zarrUrl);		
-	
-	var redBand = getInputValue('redBand');
-	var greenBand = getInputValue('greenBand');
-	var blueBand = getInputValue('blueBand');
-	const rgbBands = ({ '': [redBand, greenBand, blueBand] });		
-	
-	var scaleFactor = 1;
-	var projCode = "EPSG:4326";	
+	var zarrUrl = zarrUrls[currentIndex][0];	
 	
 	// call loadZarr(...) function
-	await loadZarr(zarrUrl,rgbBands,scaleFactor);
-	
-	/*
-		projection
-	*/
-	
-	if(projCode === 'EPSG:32628'){
-		//console.log("proj28");		
-		proj4.defs("EPSG:32628","+proj=utm +zone=28 +datum=WGS84 +units=m +no_defs");	
-		ol.proj.proj4.register(proj4);
-	} else if(projCode === 'EPSG:32633'){
-		//console.log("proj33");
-		proj4.defs("EPSG:32633","+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs");
-		ol.proj.proj4.register(proj4);
-	}
-	
-	//proj4.defs(projCode, map.getView().getProjection().getCode());
-	//ol.proj.proj4.register(proj4);
-	
-	var projection = ol.proj.get(projCode);
-	//console.log(projection);
-	//console.log("new extent = " + extent);
+	await loadZarr(zarrUrl);
+		
+	var projection = ol.proj.get(projCode);	
 	
 	//console.log(map.getView().getProjection().getCode());
 	const newView = new ol.View({
@@ -144,12 +109,13 @@ async function applyChange(){
 /*
 	An async function to read Zarr data and then convert it into an image
 */	
-async function loadZarr(zarrUrl,rgbBands,scaleFactor) {	
+async function loadZarr(zarrUrl) {
+	const bands = ({ '': [redBand, greenBand, blueBand] });
 	// asynchronous load 
 	arrays = await Promise.all(
 	
-		// iterate rgbBands array
-		Object.entries(rgbBands).map(async ([w,paths]) => {
+		// iterate bands array
+		Object.entries(bands).map(async ([w,paths]) => {
 		
 		// declare the store points to highest group e.g.: $zarrUrl/maja_v2
 		const store = new zarr.HTTPStore(zarrUrl);
@@ -157,13 +123,11 @@ async function loadZarr(zarrUrl,rgbBands,scaleFactor) {
 		// open group
 		const grp = await zarr.openGroup(store);
 		
-		// read all groups: B4/band_data, B3/band_data and B2/band_data and then concatenate them (flat()) into an array
+		// read date and then concatenate them (flat()) into an array
 		const arrs = await Promise.all(
 		  paths.map(async p => {
-			const name = `${p}`;
-			//console.log("name:" + name);				
-			//const arr = await grp.getItem(p + '/band_data');
-			const arr = await grp.getItem(zoomLevel + "/" + p);
+			const name = `${p}`;			
+			const arr = await grp.getItem(p + "/" + zoomLevel + "/band_data");
 			
 			/*
 				read minX, minY, maxX, maxY from x and y to compute the extent
@@ -171,17 +135,15 @@ async function loadZarr(zarrUrl,rgbBands,scaleFactor) {
 			
 			var minx,miny,maxx,maxy;
 			// read x data to extract minX and maxX
-			//const xData = await grp.getItem(p + '/x');
-			const xData = await grp.getItem(zoomLevel + "/lon");
+			const xData = await grp.getItem(p + "/" + zoomLevel + "/x");
 			if(xData){
 				const xValues = await xData.getRaw(null);
 				minx = xValues.data[0];
 				maxx = xValues.data[xValues.data.length - 1];
 			}
 			
-			// read y data to extract minY and maxY
-			//const yData = await grp.getItem(p + '/y');
-			const yData = await grp.getItem(zoomLevel + "/lat");
+			// read y data to extract minY and maxY			
+			const yData = await grp.getItem(p + "/" + zoomLevel + "/y");
 			if(yData){
 				const yValues = await yData.getRaw(null);
 				miny = yValues.data[yValues.data.length - 1];
@@ -214,8 +176,8 @@ async function loadZarr(zarrUrl,rgbBands,scaleFactor) {
 	//console.log("extent = " + extent);
 
 	// iterate the array to get all data
-	data = await Promise.all(arrays.map(async d => [d.name, await d.arr.get(null)]));	
-	console.log(data);	
+	data = await Promise.all(arrays.map(async d => [d.name, await d.arr.get(slicing)]));
+	console.log(data);			
 
 	/*
 		convert zarr data into an image
@@ -231,8 +193,8 @@ async function loadZarr(zarrUrl,rgbBands,scaleFactor) {
 	//width += 10;
 	//height += 10;
 	
-	console.log("width ==> " + width);
-	console.log("height ==> " + height);			
+	//console.log("width ==> " + width);
+	//console.log("height ==> " + height);			
 				
 	var canvas = document.createElement('canvas');  
 	/*
@@ -270,39 +232,36 @@ async function loadZarr(zarrUrl,rgbBands,scaleFactor) {
 			}
 			break;
 		}
-	}
-	
-	//console.log(xIncrease);
-	//console.log(yIncrease);
+	}	
 	
 	for (let x = 0; x < xlen; x += 1) {		
 		for (let y = 0; y < ylen; y += 1) {
 			let xi = x;
 			if(!xIncrease) {
-				xi=xlen-x;
+				xi= (xlen -1) -x;
 			}
 			let yi = y;
 			if(!yIncrease) {
 				yi = (ylen - 1) - y;
-			}
+			}			
+			
+			let red = data[0][1].data[xi][yi]/scaleFactor;
+			let green = data[1][1].data[xi][yi]/scaleFactor;
+			let blue = data[2][1].data[xi][yi]/scaleFactor;
+			
+			imageData.data[offset + 0] = red; // R value
+			imageData.data[offset + 1] = green; // G value
+			imageData.data[offset + 2] = blue; // B value
+			imageData.data[offset + 3] = 255;
+			
 			/*
-			imageData.data[offset + 0] = data[0][1].data[yi][xi]/scaleFactor; // R value
-			imageData.data[offset + 1] = data[1][1].data[yi][xi]/scaleFactor; // G value
-			imageData.data[offset + 2] = data[2][1].data[yi][xi]/scaleFactor; // B value
-			*/						
-						
-			imageData.data[offset + 0] = data[0][1].data[xi][yi]; // R value
-			imageData.data[offset + 1] = data[1][1].data[xi][yi]; // G value
-			imageData.data[offset + 2] = data[2][1].data[xi][yi]; // B value
-			
-			
-			if(data[1][1].data[xi][yi] > 250){
-				// if the green component value is higher than 150 make the pixel transparent
+			if(green > 10){
+				// if the green component value is higher than 250 make the pixel transparent
 				imageData.data[offset + 3] = 0;
 			}else{
 				imageData.data[offset + 3] = 255;
 			}			
-			
+			*/
 			offset +=4;
 		}
 	}
@@ -318,20 +277,23 @@ async function loadZarr(zarrUrl,rgbBands,scaleFactor) {
 /**
 	create a map to display the zarr image
 */
-function createMap(projName){ 
+function createMap(){ 
 	//console.log("Creating the map...");
 	/*
 		projection
 	*/			
-	if(projName === 'EPSG:32628'){		
+	if(projCode === 'EPSG:32628'){		
 		proj4.defs("EPSG:32628","+proj=utm +zone=28 +datum=WGS84 +units=m +no_defs");
 		ol.proj.proj4.register(proj4);		
-	} else if(projName === 'EPSG:32633'){
+	} else if(projCode === 'EPSG:32633'){
 		proj4.defs("EPSG:32633","+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs");
+		ol.proj.proj4.register(proj4);
+	} else if(projCode === 'EPSG:32631'){
+		proj4.defs("EPSG:32631","+proj=utm +zone=31 +datum=WGS84 +units=m +no_defs");
 		ol.proj.proj4.register(proj4);
 	}
 	
-	var projection = ol.proj.get(projName);
+	var projection = ol.proj.get(projCode);
 	
 	/*
 		display the image on the map by using OpenLayers
@@ -372,30 +334,47 @@ function createMap(projName){
 		
 }
 
-/*
-	set value to an input field
-*/
-function setInputValue(id,value){
-	var inputField = document.getElementById(id);
-	inputField.value = value;
-}
-
-function getInputValue(id){	
-	var value = "";
-	var inputField = document.getElementById(id);
-	if(inputField){
-		value = inputField.value;
-		if(value){
-			value = value.trim();
-		}
-	}
-	return value;
-}
-
 function setCurrentZoomButton(){
 	var btn = document.getElementById('zoomBtn' + zoomLevel);
 	if(btn){
 		btn.disabled = true;
 		btn.style.backgroundColor = "#003366";
+	}
+}
+
+function setDateInfo(){
+	var dateSpan = document.getElementById('dateInfo');
+	if(dateSpan){
+		dateSpan.textContent = zarrUrls[currentIndex][1];
+	}
+}
+
+function toggleNavButtons(){
+	var prevBtn = document.getElementById('prevBtn');
+	var nextBtn = document.getElementById('nextBtn');
+	if(currentIndex === 0){
+		// disable the prev button
+		prevBtn.disabled = true;
+		prevBtn.style.backgroundColor = "#cccccc";
+		prevBtn.style.color = "#666666";
+		prevBtn.style.cursor = "default";
+	}else{
+		prevBtn.disabled = false;
+		prevBtn.style.backgroundColor = "white";
+		prevBtn.style.color = "black";
+		prevBtn.style.cursor = "pointer";
+	}
+	
+	if(currentIndex === (zarrUrls.length -1)){
+		// disable the next button
+		nextBtn.disabled = true;
+		nextBtn.style.backgroundColor = "#cccccc";
+		nextBtn.style.color = "#666666";
+		nextBtn.style.cursor = "default";
+	}else{
+		nextBtn.disabled = false;
+		nextBtn.style.backgroundColor = "white";
+		nextBtn.style.color = "black";
+		nextBtn.style.cursor = "pointer";
 	}
 }

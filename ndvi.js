@@ -250,7 +250,7 @@ async function loadZarr(zarrUrl,bands) {
 		for (let y = 0; y < ylen; y += 1) {
 			let xi = x;
 			if(!xIncrease) {
-				xi=xlen-x;
+				xi= (xlen -1) -x;
 			}
 			let yi = y;
 			if(!yIncrease) {
