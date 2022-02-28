@@ -2,10 +2,11 @@
 	This function will be called at startup
 */
 async function startup(){
-	//	initialize list of Zarr
-	zarrUrls.push(["https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/ndvi/c_gls_NDVI_202006010000_GLOBE_PROBAV_V2.2.1_subset_v3.zarr","01/06/2020"]);			
-	zarrUrls.push(["https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/ndvi/c_gls_NDVI_202006110000_GLOBE_PROBAV_V2.2.1_subset_v3.zarr","11/06/2020"]);		
-	zarrUrls.push(["https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/ndvi/c_gls_NDVI_202006210000_GLOBE_PROBAV_V2.2.1_subset_v3.zarr","21/06/2020"]);
+	//	initialize list of Zarr	
+	zarrUrls.push(["https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/ndvi/c_gls_NDVI_202006010000_GLOBE_PROBAV_V2.2.1_v3.zarr","01/06/2020"]);	
+	zarrUrls.push(["https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/ndvi/c_gls_NDVI_202006110000_GLOBE_PROBAV_V2.2.1_v3.zarr","11/06/2020"]);		
+	zarrUrls.push(["https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/ndvi/c_gls_NDVI_202006210000_GLOBE_PROBAV_V2.2.1_v3.zarr"
+	,"21/06/2020"]);	
 		
 	const band = "NDVI";	
 	const bands = ({ '': [band] });	
@@ -45,8 +46,9 @@ async function navigate(index){
 
 async function changeZoomLevel(targetZoomLevel){
 	zoomLevel = targetZoomLevel;
-	await applyChange();
 	map.getView().setZoom(zoomLevel);
+	await applyChange();
+	
 	
 	// disable the current zoom button
 	for(var i = 1; i <= 9; i++){
@@ -57,7 +59,7 @@ async function changeZoomLevel(targetZoomLevel){
 				btn.style.backgroundColor = "#17a2b8";
 			}
 		}
-	}
+	}	
 }
 /**
 	This function will be called when user click on "Apply" button to reload Zarr image with new input info
@@ -79,6 +81,7 @@ async function applyChange(){
 	var projection = ol.proj.get(projCode);	
 	
 	//console.log(map.getView().getProjection().getCode());
+	/*
 	const newView = new ol.View({
 			projection: projCode,
 			center: ol.extent.getCenter(extent),
@@ -86,12 +89,15 @@ async function applyChange(){
 			minZoom: zoomMin,
 			maxZoom: zoomMax
 		});
-	map.setView(newView);
+	*/	
+	//map.setView(newView);
+	//map.getView().setCenter(new ol.extent.getCenter(extent1));
 	
+	var ext = map.getView().calculateExtent();
 	const newSource = new ol.source.ImageStatic({            
 			url: imageURL,
 			projection: projCode,
-			imageExtent: extent
+			imageExtent: ext
 		});
 	
 	//console.log(map.getView());
@@ -123,6 +129,9 @@ async function applyChange(){
 	An async function to read Zarr data and then convert it into an image
 */	
 async function loadZarr(zarrUrl,bands) {	
+	var lonArray;
+	var latArray;
+	
 	// asynchronous load 
 	arrays = await Promise.all(
 	
@@ -139,7 +148,7 @@ async function loadZarr(zarrUrl,bands) {
 		const arrs = await Promise.all(
 		  paths.map(async p => {
 			const name = `${p}`;			
-			const arr = await grp.getItem(zoomLevel + "/" + p);
+			const arr = await grp.getItem(zoomLevel + "/" + p);			
 			
 			/*
 				read minX, minY, maxX, maxY from x and y to compute the extent
@@ -150,6 +159,7 @@ async function loadZarr(zarrUrl,bands) {
 			const xData = await grp.getItem(zoomLevel + "/lon");
 			if(xData){
 				const xValues = await xData.getRaw(null);
+				lonArray = xValues;
 				minx = xValues.data[0];
 				maxx = xValues.data[xValues.data.length - 1];
 			}
@@ -158,6 +168,7 @@ async function loadZarr(zarrUrl,bands) {
 			const yData = await grp.getItem(zoomLevel + "/lat");
 			if(yData){
 				const yValues = await yData.getRaw(null);
+				latArray = yValues;
 				miny = yValues.data[yValues.data.length - 1];
 				maxy = yValues.data[0];
 			}
@@ -185,12 +196,72 @@ async function loadZarr(zarrUrl,bands) {
 	  })
 	).then(arr => arr.flat());
 	
-	//console.log("extent = " + extent);
+	/*
+	console.log("extent = " + extent);
+	console.log("lon length = " + lonArray.data.length);
+	console.log("lat length = " + latArray.data.length);
+	*/
+	
+	
+	try{
+		var currentExtent = map.getView().calculateExtent();
+		console.log("Current extent: " + currentExtent);
+		
+		extent1 = currentExtent;
+		let minLon = currentExtent[0];		
+		let minLonIndex = getClosestIndex(minLon,lonArray.data);
+		//console.log("minLon = " + minLon + "; minLonIndex = " + minLonIndex);		
+		
+		let minLat = currentExtent[1];		
+		let minLatIndex = getClosestIndex(minLat,latArray.data);
+		//console.log("minLat = " + minLat + "; minLatIndex = " + minLatIndex);
+		
+		let maxLon = currentExtent[2];		
+		let maxLonIndex = getClosestIndex(maxLon,lonArray.data);
+		//console.log("maxLon = " + maxLon + "; maxLonIndex = " + maxLonIndex);
+		
+		let maxLat = currentExtent[3];		
+		let maxLatIndex = getClosestIndex(maxLat,latArray.data);
+		//console.log("maxLatIndex = " + maxLatIndex + "; maxLat = " + maxLat);
+		
+		let lon1, lon2;
+		let lat1, lat2;		
+		
+		if(minLonIndex < maxLonIndex){
+			lon1 = minLonIndex;
+			lon2 = maxLonIndex;
+		}else{
+			lon1 = maxLonIndex;
+			lon2 = minLonIndex;
+		}
+		
+		
+		if(minLatIndex < maxLatIndex){
+			lat1 = minLatIndex;
+			lat2 = maxLatIndex;
+		}else{
+			lat1 = maxLatIndex;
+			lat2 = minLatIndex;
+		}
+		console.log("Indexes: lon(" + lon1 + "," + lon2 + "); lat(" + lat1 + "," + lat2 + ")");
+				
+		data = await Promise.all(arrays.map(async d => [d.name, await d.arr.get([zarr.slice(lon1,lon2),zarr.slice(lat1,lat2)])]));
+		
+		//data = await Promise.all(arrays.map(async d => [d.name, await d.arr.get([zarr.slice(null),zarr.slice(null)])]));
+		//console.log("DATA 2222");
+		//console.log(data);	
+	}catch(e){
+		//console.log(e);
+		data = await Promise.all(arrays.map(async d => [d.name, await d.arr.get(null)]));
+		//console.log("DATA 111");
+		//	
+	}
 
 	// iterate the array to get all data
-	data = await Promise.all(arrays.map(async d => [d.name, await d.arr.get(null)]));
-	//console.log(data);			
-
+	//data = await Promise.all(arrays.map(async d => [d.name, await d.arr.get([zarr.slice(0,200)])]));
+			
+	console.log(data);
+	
 	/*
 		convert zarr data into an image
 	*/		
@@ -199,70 +270,32 @@ async function loadZarr(zarrUrl,bands) {
 	let height = data[0][1].shape[data[0][1].shape.length -2];
 	let width = data[0][1].shape[data[0][1].shape.length -1];
 	
-	let xlen=width;
-	let ylen=height;
-	//console.log(width+  " - " + height);
-	//width += 10;
-	//height += 10;
-	
-	//console.log("width ==> " + width);
-	//console.log("height ==> " + height);			
+	console.log("width ==> " + width);
+	console.log("height ==> " + height);
 				
 	var canvas = document.createElement('canvas');  
 	/*
 		set width and height of the Zarr image to the canvas size
 	*/
-	canvas.width=xlen;
-	canvas.height=ylen;  
+	canvas.width=width;
+	canvas.height=height;  
 	
 	const ctx = canvas.getContext('2d');
 	const imageData = ctx.createImageData(width, height);
 
 	let offset = 0;			
-	
-	/*
-		detect the order of x and y
-	*/	
-	//let xIncrease = true;//(data[0][1].data[0][1] - data[0][1].data[0][0]) > 0 ;
-	//let yIncrease = true;//(data[0][1].data[1][1] - data[0][1].data[1][0]) > 0 ;		
-	
-	let xIncrease = true;
-	for (let x = 0; x < xlen; x += 1) {		
-		if(data[0][1].data[0][0] !== data[0][1].data[0][x]){
-			if(data[0][1].data[0][0] >= data[0][1].data[0][x]){
-				xIncrease = false;				
-			}
-			break;
-		}
-	}
-	
-	let yIncrease = true;
-	for (let x = 0; x < xlen; x += 1) {	
-		if(data[0][1].data[0][0] !== data[0][1].data[0][x]){
-			if(data[0][1].data[1][0] >= data[0][1].data[1][x]){
-				yIncrease = false;				
-			}
-			break;
-		}
-	}	
-	
-	for (let x = 0; x < xlen; x += 1) {		
+		
+	let xlen = data[0][1].data.length;
+	let ylen = data[0][1].data[0].length;
+	for (let x = 0; x < xlen ; x += 1) {
 		for (let y = 0; y < ylen; y += 1) {
-			let xi = x;
-			if(!xIncrease) {
-				xi= (xlen -1) -x;
-			}
-			let yi = y;
-			if(!yIncrease) {
-				yi = (ylen - 1) - y;
-			}			
-			
-			let value = data[0][1].data[xi][yi];
+			let value = data[0][1].data[x][y];
 			computeColor(imageData,value,offset);
-						
+									
 			offset +=4;
 		}
 	}
+	
 	
 	// Draw image data to the canvas
 	ctx.putImageData(imageData, 0, 0);		
@@ -445,4 +478,21 @@ function computeColor(imageData, value, offset){
 	}else{
 		imageData.data[offset + 3] = 255;
 	}
+}
+
+function getClosestIndex(num,arr){
+	let index = 0;
+	
+	let curr = arr[0], diff = Math.abs(num - curr);	
+	for (let val = 0; val < arr.length; val++) {
+		let newdiff = Math.abs(num - arr[val]);
+		if (newdiff < diff) {
+			diff = newdiff;
+			curr = arr[val];
+			index = val;
+			//console.log(arr[val]);
+		};
+	};
+	
+	return index;	
 }
