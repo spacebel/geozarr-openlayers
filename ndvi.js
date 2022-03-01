@@ -3,10 +3,9 @@
 */
 async function startup(){
 	//	initialize list of Zarr	
-	zarrUrls.push(["https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/ndvi/c_gls_NDVI_202006010000_GLOBE_PROBAV_V2.2.1_v3.zarr","01/06/2020"]);	
-	zarrUrls.push(["https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/ndvi/c_gls_NDVI_202006110000_GLOBE_PROBAV_V2.2.1_v3.zarr","11/06/2020"]);		
-	zarrUrls.push(["https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/ndvi/c_gls_NDVI_202006210000_GLOBE_PROBAV_V2.2.1_v3.zarr"
-	,"21/06/2020"]);	
+	zarrUrls.push(["https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/ndvi/c_gls_NDVI_202006010000_GLOBE_PROBAV_V2.2.1_v3.zarr","01/06/2020"]);
+	zarrUrls.push(["https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/ndvi/c_gls_NDVI_202006110000_GLOBE_PROBAV_V2.2.1_v3.zarr","11/06/2020"]);
+	zarrUrls.push(["https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/ndvi/c_gls_NDVI_202006210000_GLOBE_PROBAV_V2.2.1_v3.zarr","21/06/2020"]);
 		
 	const band = "NDVI";	
 	const bands = ({ '': [band] });	
@@ -18,7 +17,8 @@ async function startup(){
 	await loadZarr(zarrUrl,bands);
 	
 	// create a map to display the zarr image
-	createMap(projName,extent);
+	createMap(projName);
+	started = true;
 	
 	//map.getView().fit(extent);
 		
@@ -28,7 +28,7 @@ async function startup(){
 }
 
 async function navigate(index){
-	var newIndex = currentIndex + index;	
+	var newIndex = currentIndex + index;
 	if(newIndex < 0){
 		newIndex = 0;
 	}
@@ -51,7 +51,7 @@ async function changeZoomLevel(targetZoomLevel){
 	
 	
 	// disable the current zoom button
-	for(var i = 1; i <= 9; i++){
+	for(var i = 1; i <= 7; i++){
 		var btn = document.getElementById('zoomBtn' + i);
 		if(btn){
 			if(i != targetZoomLevel){
@@ -72,53 +72,28 @@ async function applyChange(){
 	var zarrUrl = zarrUrls[currentIndex][0];
 	const band = "NDVI";
 		
-	const bands = ({ '': [band] });		
-	const projCode = "EPSG:4326";	
+	const bands = ({ '': [band] });
+	const projCode = "EPSG:4326";
 	
 	// call loadZarr(...) function
 	await loadZarr(zarrUrl,bands);
 		
 	var projection = ol.proj.get(projCode);	
-	
-	//console.log(map.getView().getProjection().getCode());
-	/*
-	const newView = new ol.View({
-			projection: projCode,
-			center: ol.extent.getCenter(extent),
-			zoom: zoomLevel,
-			minZoom: zoomMin,
-			maxZoom: zoomMax
-		});
-	*/	
-	//map.setView(newView);
-	//map.getView().setCenter(new ol.extent.getCenter(extent1));
-	
+		
 	var ext = map.getView().calculateExtent();
 	const newSource = new ol.source.ImageStatic({            
-			url: imageURL,
+			url: imageURL,			
 			projection: projCode,
+			imageSmoothing: false,
+			interpolate: false,
 			imageExtent: ext
 		});
-	
-	//console.log(map.getView());
+		
 	map.getLayers().forEach(function (layer, i) {
-		if (layer instanceof ol.layer.Image) {			
-			layer.setSource(newSource);			
+		if (layer instanceof ol.layer.Image) {
+			layer.setSource(newSource);
 		}
 	});	
-	
-	//map.getView().fit(extent);
-	
-	map.getView().on('change:resolution', (event) => {
-		var zoom = Math.round(map.getView().getZoom()); 
-		//console.log("Zoom level: " + map.getView().getZoom());
-		
-		if(zoom != zoomLevel){			
-			console.log("Change zoom level from " + zoomLevel + " to " + zoom);
-			zoomLevel = zoom;
-			changeZoomLevel(zoom);
-		}		
-	});
 	
 	
 	loadingBar.style.display = 'none';
@@ -144,11 +119,14 @@ async function loadZarr(zarrUrl,bands) {
 		// open group
 		const grp = await zarr.openGroup(store);
 		
+		//const scaleLevel = zoomLevel - 1;
+		const scaleLevel = zoomLevel;
+		
 		// read date and then concatenate them (flat()) into an array
 		const arrs = await Promise.all(
 		  paths.map(async p => {
 			const name = `${p}`;			
-			const arr = await grp.getItem(zoomLevel + "/" + p);			
+			const arr = await grp.getItem(scaleLevel + "/" + p);			
 			
 			/*
 				read minX, minY, maxX, maxY from x and y to compute the extent
@@ -156,7 +134,7 @@ async function loadZarr(zarrUrl,bands) {
 			
 			var minx,miny,maxx,maxy;
 			// read x data to extract minX and maxX
-			const xData = await grp.getItem(zoomLevel + "/lon");
+			const xData = await grp.getItem(scaleLevel + "/lon");
 			if(xData){
 				const xValues = await xData.getRaw(null);
 				lonArray = xValues;
@@ -165,7 +143,7 @@ async function loadZarr(zarrUrl,bands) {
 			}
 			
 			// read y data to extract minY and maxY			
-			const yData = await grp.getItem(zoomLevel + "/lat");
+			const yData = await grp.getItem(scaleLevel + "/lat");
 			if(yData){
 				const yValues = await yData.getRaw(null);
 				latArray = yValues;
@@ -196,60 +174,41 @@ async function loadZarr(zarrUrl,bands) {
 	  })
 	).then(arr => arr.flat());
 	
-	/*
-	console.log("extent = " + extent);
-	console.log("lon length = " + lonArray.data.length);
-	console.log("lat length = " + latArray.data.length);
-	*/
-	
-	
 	try{
-		var currentExtent = map.getView().calculateExtent();
-		console.log("Current extent: " + currentExtent);
-		
-		extent1 = currentExtent;
-		let minLon = currentExtent[0];		
-		let minLonIndex = getClosestIndex(minLon,lonArray.data);
-		//console.log("minLon = " + minLon + "; minLonIndex = " + minLonIndex);		
-		
-		let minLat = currentExtent[1];		
-		let minLatIndex = getClosestIndex(minLat,latArray.data);
-		//console.log("minLat = " + minLat + "; minLatIndex = " + minLatIndex);
-		
-		let maxLon = currentExtent[2];		
-		let maxLonIndex = getClosestIndex(maxLon,lonArray.data);
-		//console.log("maxLon = " + maxLon + "; maxLonIndex = " + maxLonIndex);
-		
-		let maxLat = currentExtent[3];		
-		let maxLatIndex = getClosestIndex(maxLat,latArray.data);
-		//console.log("maxLatIndex = " + maxLatIndex + "; maxLat = " + maxLat);
-		
-		let lon1, lon2;
-		let lat1, lat2;		
-		
-		if(minLonIndex < maxLonIndex){
-			lon1 = minLonIndex;
-			lon2 = maxLonIndex;
+		if(started){
+			var zoom = Math.round(map.getView().getZoom()); 
+			
+			var currentExtent = map.getView().calculateExtent();
+			extent = currentExtent;			
+								
+			let minLonIndex = getClosestIndex(currentExtent[0],lonArray.data);
+			let minLatIndex = getClosestIndex(currentExtent[1],latArray.data);
+						
+			let maxLonIndex = getClosestIndex(currentExtent[2],lonArray.data);
+			let maxLatIndex = getClosestIndex(currentExtent[3],latArray.data);
+			
+			var lat1,lat2,lon1,lon2;
+			if(minLonIndex < maxLonIndex){
+				lon1 = minLonIndex;
+				lon2 = maxLonIndex;
+			}else{
+				lon1 = maxLonIndex;
+				lon2 = minLonIndex;
+			}
+						
+			if(minLatIndex < maxLatIndex){
+				lat1 = minLatIndex;
+				lat2 = maxLatIndex;
+			}else{
+				lat1 = maxLatIndex;
+				lat2 = minLatIndex;
+			}	
+			
+			//console.log("Indexes: lon(" + lon1 + "," + lon2 + "); lat(" + lat1 + "," + lat2 + ")");			
+			data = await Promise.all(arrays.map(async d => [d.name, await d.arr.get([zarr.slice(lat1,lat2),zarr.slice(lon1,lon2)])]));		
 		}else{
-			lon1 = maxLonIndex;
-			lon2 = minLonIndex;
-		}
-		
-		
-		if(minLatIndex < maxLatIndex){
-			lat1 = minLatIndex;
-			lat2 = maxLatIndex;
-		}else{
-			lat1 = maxLatIndex;
-			lat2 = minLatIndex;
-		}
-		console.log("Indexes: lon(" + lon1 + "," + lon2 + "); lat(" + lat1 + "," + lat2 + ")");
-				
-		data = await Promise.all(arrays.map(async d => [d.name, await d.arr.get([zarr.slice(lon1,lon2),zarr.slice(lat1,lat2)])]));
-		
-		//data = await Promise.all(arrays.map(async d => [d.name, await d.arr.get([zarr.slice(null),zarr.slice(null)])]));
-		//console.log("DATA 2222");
-		//console.log(data);	
+			data = await Promise.all(arrays.map(async d => [d.name, await d.arr.get(null)]));
+		}		
 	}catch(e){
 		//console.log(e);
 		data = await Promise.all(arrays.map(async d => [d.name, await d.arr.get(null)]));
@@ -257,21 +216,11 @@ async function loadZarr(zarrUrl,bands) {
 		//	
 	}
 
-	// iterate the array to get all data
-	//data = await Promise.all(arrays.map(async d => [d.name, await d.arr.get([zarr.slice(0,200)])]));
-			
-	console.log(data);
-	
-	/*
-		convert zarr data into an image
-	*/		
-
+	// convert zarr data into an image
 	// get image size (height and width) from shape attribute			
 	let height = data[0][1].shape[data[0][1].shape.length -2];
 	let width = data[0][1].shape[data[0][1].shape.length -1];
-	
-	console.log("width ==> " + width);
-	console.log("height ==> " + height);
+		
 				
 	var canvas = document.createElement('canvas');  
 	/*
@@ -291,11 +240,9 @@ async function loadZarr(zarrUrl,bands) {
 		for (let y = 0; y < ylen; y += 1) {
 			let value = data[0][1].data[x][y];
 			computeColor(imageData,value,offset);
-									
 			offset +=4;
 		}
-	}
-	
+	}	
 	
 	// Draw image data to the canvas
 	ctx.putImageData(imageData, 0, 0);		
@@ -308,8 +255,7 @@ async function loadZarr(zarrUrl,bands) {
 /**
 	create a map to display the zarr image
 */
-function createMap(projName){ 
-	//console.log("Creating the map...");
+function createMap(projName){ 	
 	/*
 		projection
 	*/			
@@ -323,18 +269,28 @@ function createMap(projName){
 	
 	var projection = ol.proj.get(projName);
 	
+	const mousePositionControl = new ol.control.MousePosition({
+		coordinateFormat: ol.coordinate.createStringXY(4),
+		projection: 'EPSG:4326',
+		className: 'custom-mouse-position',
+		target: document.getElementById('mouse-position'),
+	});
+	
 	/*
 		display the image on the map by using OpenLayers
 	*/			
 	map = new ol.Map({
+		controls: ol.control.defaults().extend([mousePositionControl]),
 		layers: [
 			new ol.layer.Tile({
 				source: new ol.source.OSM(),
 			}),			
 			new ol.layer.Image({
-				source: new ol.source.ImageStatic({            
+				source: new ol.source.ImageStatic({
 					url: imageURL,
 					projection: projection,
+					imageSmoothing: false,
+					interpolate: false,
 					imageExtent: extent
 				})
 			})
@@ -343,26 +299,29 @@ function createMap(projName){
 		view: new ol.View({
 			projection: projection,
 			center: ol.extent.getCenter(extent),
+			//extent: [-180,-90,180,90],
+			extent: extent,
 			zoom: zoomLevel,
 			minZoom: zoomMin,
 			maxZoom: zoomMax
 		})
-	});  
-
-	map.getView().on('change:resolution', (event) => {
-		var zoom = Math.round(map.getView().getZoom()); 
-		//console.log("Zoom level: " + map.getView().getZoom());
+	});
+	
+	map.on('moveend', function (event) {
+		var zoom = Math.round(map.getView().getZoom());
+		var newExtent = map.getView().calculateExtent();
 		
-		if(zoom != zoomLevel){			
-			//console.log("Change zoom level from " + zoomLevel + " to " + zoom);
+		if(zoom != zoomLevel || extent != newExtent){
 			zoomLevel = zoom;
+			extent = newExtent;
 			changeZoomLevel(zoom);
-		}		
+		}
+		
 	});
 		
 }
 
-function setCurrentZoomButton(){
+function setCurrentZoomButton(){	
 	var btn = document.getElementById('zoomBtn' + zoomLevel);
 	if(btn){
 		btn.disabled = true;
@@ -490,7 +449,6 @@ function getClosestIndex(num,arr){
 			diff = newdiff;
 			curr = arr[val];
 			index = val;
-			//console.log(arr[val]);
 		};
 	};
 	

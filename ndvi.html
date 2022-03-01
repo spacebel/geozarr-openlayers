@@ -6,9 +6,13 @@
 	<link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" type="text/css">
     <style>
 		.map {
-			height: 90%;
+			/*
+			height: 80%;
 			width: 100%;
-			padding-bottom: 10px;
+			*/
+			height: 256px;
+			width: 512px;
+			padding-bottom: 10px;			
 		}
 		
 		div.map div.ol-zoom {
@@ -99,24 +103,28 @@
 		<input type="button" class="btn-zoom" id="zoomBtn5" value="Zoom: 5" onclick="changeZoomLevel(5)" title="Zoom to 5"/>
 		<input type="button" class="btn-zoom" id="zoomBtn6" value="Zoom: 6" onclick="changeZoomLevel(6)" title="Zoom to 6"/>
 		<input type="button" class="btn-zoom" id="zoomBtn7" value="Zoom: 7" onclick="changeZoomLevel(7)" title="Zoom to 7"/>
+		<!--
 		<input type="button" class="btn-zoom" id="zoomBtn8" value="Zoom: 8" onclick="changeZoomLevel(8)" title="Zoom to 8"/>
 		<input type="button" class="btn-zoom" id="zoomBtn9" value="Zoom: 9" onclick="changeZoomLevel(9)" title="Zoom to 9"/>
+		-->
 	</div>
 	<div id="map" class="map"></div>
 		<div id="loadingBar" style="display:none;"> 
 		<!--
         <i class="fa fa-spinner fa-spin loading-icon"></i>
 		-->
-    </div>		
+    </div>
+	<div id="mouse-position"></div>
     <script>
 		var map;
 		var imageURL;
 		var extent = [];		
-		const zoomMin = 0;
-		const zoomMax = 9;
+		const zoomMin = 1;
+		const zoomMax = 7;
 		var zoomLevel = 1;	
 		var zarrUrls = [];		
-		var currentIndex = 0;
+		var currentIndex = 0;		
+		var started = false;
 	</script>
 </body>
 
