@@ -1,0 +1,125 @@
+<html>
+
+<head>
+    <script src="https://unpkg.com/zarr/zarr.umd.js"></script>	
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.9.0/css/ol.css" type="text/css">
+	<link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" type="text/css">
+    <style>
+		.map {
+			height: 90%;
+			width: 100%;
+			padding-bottom: 10px;
+		}
+		
+		div.map div.ol-zoom {
+			top: 30px;
+		}
+	  
+		#loadingBar {
+			top:0;  
+			left:100px;
+			width: 80%;
+			height: 60%;
+			display:table;
+			background: rgba(0, 0, 0, 0.6);
+			position:absolute;
+		}
+		#loadingBar i {
+			display:table-cell;
+			vertical-align:middle;
+			text-align:center;
+		}
+		.loading-icon {
+			font-size: 50px;
+			color:white;
+			height: 50px;
+			width: 50px;	
+		}	
+		
+		div.mapControls input{
+			color: #fff;
+			background-color: #17a2b8;
+			font-family: 'Source Sans Pro',sans-serif;
+			font-size: 12px;
+		}
+		
+		input.btn-zoom{
+			cursor:pointer;
+		}
+				
+		div.banner{
+			width: 100%;
+			text-align: center;
+			background: #0d457b;
+			background: -moz-linear-gradient(-45deg, #0d457b 0%, #798eea 100%);
+			background: -webkit-gradient(left top, right bottom, color-stop(0%, #0d457b), color-stop(100%, #798eea));
+			background: -webkit-linear-gradient(-45deg, #0d457b 0%, #798eea 100%);
+			background: -o-linear-gradient(-45deg, #0d457b 0%, #798eea 100%);
+		}
+		
+		input.btn-icon{
+			display: inline-block;
+			font: normal normal normal 14px/1 FontAwesome;
+			font-size: 14px;
+			text-rendering: auto;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
+			background-color: white;			
+			border: none;  
+			padding: 5px;
+			text-align: center;
+			text-decoration: none;   
+			margin: 2px 1px;
+			border-radius: 50%;
+		}
+		
+		span.date-info{
+			color: #fff;			
+			font-family: 'Source Sans Pro',sans-serif;
+			font-size: 14px;
+		}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.9.0/build/ol.js"></script>	
+	<script src="./proj4.js"></script>	
+	<script src="./prisma.js"></script>
+</head>
+
+<body onload="startup()">
+	<div class="banner">		
+		<input type="button" id="prevBtn" class="btn-icon" value="&#xf060;" title="View previous" onclick="navigate(-1)"/>
+		<span class="date-info" id="dateInfo"></span>
+		<input type="button" id="nextBtn" class="btn-icon" value="&#xf061;" title="View next" onclick="navigate(1)"/>				
+	</div>
+	<div class="mapControls">
+		<input type="button" class="btn-zoom" id="zoomBtn1" value="Zoom: 1" onclick="changeZoomLevel(1)" title="Zoom to 1"/>
+		<input type="button" class="btn-zoom" id="zoomBtn2" value="Zoom: 2" onclick="changeZoomLevel(2)" title="Zoom to 2"/>
+		<input type="button" class="btn-zoom" id="zoomBtn3" value="Zoom: 3" onclick="changeZoomLevel(3)" title="Zoom to 3"/>		
+	</div>
+	<div id="map" class="map"></div>
+		<div id="loadingBar" style="display:none;"> 
+		<!--
+        <i class="fa fa-spinner fa-spin loading-icon"></i>
+		-->
+    </div>		
+    <script>
+		var map;
+		var imageURL;
+		var extent = [];		
+		const zoomMin = 1;
+		const zoomMax = 3;
+		var zoomLevel = 1;	
+		var zarrUrls = [];		
+		var currentIndex = 0;
+		const scaleFactor = 50;		
+		const redBand = "reflectance";
+		const greenBand = "reflectance";
+		const blueBand = "reflectance";
+		const redBandSubset = [32];
+		const greenBandSubset = [21];
+		const blueBandSubset = [12];
+		const projCode = "EPSG:32630";
+	</script>
+</body>
+
+</html>
