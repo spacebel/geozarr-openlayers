@@ -81,8 +81,8 @@
 
     </style>
     <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.9.0/build/ol.js"></script>	
-	<script src="./proj4.js"></script>	
-	<script src="./maja.js"></script>
+	<script src="../proj4.js"></script>	
+	<script src="./prisma.js"></script>
 </head>
 
 <body onload="startup()">
@@ -94,18 +94,7 @@
 	<div class="mapControls">
 		<input type="button" class="btn-zoom" id="zoomBtn1" value="Zoom: 1" onclick="changeZoomLevel(1)" title="Zoom to 1"/>
 		<input type="button" class="btn-zoom" id="zoomBtn2" value="Zoom: 2" onclick="changeZoomLevel(2)" title="Zoom to 2"/>
-		<input type="button" class="btn-zoom" id="zoomBtn3" value="Zoom: 3" onclick="changeZoomLevel(3)" title="Zoom to 3"/>
-		<input type="button" class="btn-zoom" id="zoomBtn4" value="Zoom: 4" onclick="changeZoomLevel(4)" title="Zoom to 4"/>
-		<input type="button" class="btn-zoom" id="zoomBtn5" value="Zoom: 5" onclick="changeZoomLevel(5)" title="Zoom to 5"/>
-		<input type="button" class="btn-zoom" id="zoomBtn6" value="Zoom: 6" onclick="changeZoomLevel(6)" title="Zoom to 6"/>
-		<input type="button" class="btn-zoom" id="zoomBtn7" value="Zoom: 7" onclick="changeZoomLevel(7)" title="Zoom to 7"/>
-		<input type="button" class="btn-zoom" id="zoomBtn8" value="Zoom: 8" onclick="changeZoomLevel(8)" title="Zoom to 8"/>
-		<input type="button" class="btn-zoom" id="zoomBtn9" value="Zoom: 9" onclick="changeZoomLevel(9)" title="Zoom to 9"/>
-		<input type="button" class="btn-zoom" id="zoomBtn10" value="Zoom: 10" onclick="changeZoomLevel(10)" title="Zoom to 10"/>
-		<input type="button" class="btn-zoom" id="zoomBtn11" value="Zoom: 11" onclick="changeZoomLevel(11)" title="Zoom to 11"/>
-		<input type="button" class="btn-zoom" id="zoomBtn12" value="Zoom: 12" onclick="changeZoomLevel(12)" title="Zoom to 12"/>
-		<input type="button" class="btn-zoom" id="zoomBtn13" value="Zoom: 13" onclick="changeZoomLevel(13)" title="Zoom to 13"/>
-		<input type="button" class="btn-zoom" id="zoomBtn14" value="Zoom: 14" onclick="changeZoomLevel(14)" title="Zoom to 14"/>
+		<input type="button" class="btn-zoom" id="zoomBtn3" value="Zoom: 3" onclick="changeZoomLevel(3)" title="Zoom to 3"/>		
 	</div>
 	<div id="map" class="map"></div>
 		<div id="loadingBar" style="display:none;"> 
@@ -117,17 +106,19 @@
 		var map;
 		var imageURL;
 		var extent = [];		
-		const zoomMin = 0;
-		const zoomMax = 14;
-		var zoomLevel = 9;	
+		const zoomMin = 1;
+		const zoomMax = 3;
+		var zoomLevel = 1;	
 		var zarrUrls = [];		
 		var currentIndex = 0;
-		const scaleFactor = 7;
-		const slicing = [0];
-		const redBand = "B4";
-		const greenBand = "B3";
-		const blueBand = "B2";
-		const projCode = "EPSG:32631";
+		const scaleFactor = 50;		
+		const redBand = "reflectance";
+		const greenBand = "reflectance";
+		const blueBand = "reflectance";
+		const redBandSubset = [32];
+		const greenBandSubset = [21];
+		const blueBandSubset = [12];
+		const projCode = "EPSG:32630";
 	</script>
 </body>
 
