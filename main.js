@@ -20,11 +20,9 @@ async function startup(){
 	imageURL = await loadZarr(zarrUrl);
 	
 	// create a map to display the zarr image
-	createMap(projCode);
+	createMap();
 	registerResolutionChangeCallback();
 	
-	//map.getView().fit(extent);
-		
 	setCurrentZoomButton();
 	setDateInfo();
 	toggleNavButtons();
@@ -48,20 +46,13 @@ async function navigate(index){
 */
 
 async function changeZoomLevel(targetZoomLevel){
-	zoomLevel = targetZoomLevel;
-	await applyChange();
-	setMapZoom(zoomLevel);
-	
-	// disable the current zoom button
-	for(var i = 1; i <= zoomMax; i++){
-		var btn = document.getElementById('zoomBtn' + i);
-		if(btn){
-			if(i != targetZoomLevel){
-				btn.disabled = false;
-				btn.style.backgroundColor = "#17a2b8";
-			}
-		}
-	}
+	setDesiredZoomLevel(targetZoomLevel);
+	applyChange().then(() =>{
+		//Update map Zoom
+		updateMapZoom(targetZoomLevel);
+		//Disable the current zoom button
+		disableCurrentZoomButton(targetZoomLevel);
+	});
 }
 
 async function applyChange(){
@@ -73,13 +64,9 @@ async function applyChange(){
 	// call loadZarr(...) function
 	// assign the canvas data URL to the global variable imageURL 
 	imageURL = await loadZarr(zarrUrl);
-		
-	var projection = ol.proj.get(projCode);	
 
 	//refresh Image view displayed on the Map.
-	refreshMapView(imageURL,
-				   projCode, extent, 
-				   zoomLevel, zoomMin,zoomMax);
+	refreshMapView(imageURL,zoomLevel);
 	
 	registerResolutionChangeCallback();
 	
@@ -88,23 +75,38 @@ async function applyChange(){
 }
 
 function registerResolutionChangeCallback(){
-	map.getView().on('change:resolution', (event) => {
-		var zoom = Math.round(map.getView().getZoom()); 
-		//console.log("Zoom level: " + map.getView().getZoom());
+
+	callback = (event) => {
+		var zoom = Math.round(getMapZoom()); 
 		
-		if(zoom != zoomLevel){			
-			//console.log("Change zoom level from " + zoomLevel + " to " + zoom);
-			zoomLevel = zoom;
+		if(zoom != getDesiredZoomLevel()){		
+
+			console.log("Update Map Zoom from "+getDesiredZoomLevel()+ " to "+zoom)
 			changeZoomLevel(zoom);
 		}		
-	});
+	};
+
+	onMapResolutionChange(callback);
 }
 
 function setCurrentZoomButton(){
-	var btn = document.getElementById('zoomBtn' + zoomLevel);
+	var btn = document.getElementById('zoomBtn' + getDesiredZoomLevel());
 	if(btn){
 		btn.disabled = true;
 		btn.style.backgroundColor = "#003366";
+	}
+}
+
+function disableCurrentZoomButton(targetZoomLevel){
+	
+	for(var i = 1; i <= getMaxZoom(); i++){
+		var btn = document.getElementById('zoomBtn' + i);
+		if(btn){
+			if(i != targetZoomLevel){
+				btn.disabled = false;
+				btn.style.backgroundColor = "#17a2b8";
+			}
+		}
 	}
 }
 

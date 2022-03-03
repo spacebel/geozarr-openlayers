@@ -1,5 +1,5 @@
 let map;
-let projCode = "EPSG:32633";
+let projectionCode = "EPSG:32633";
 let extent = [];		
 const zoomMin = 0;
 const zoomMax = 14;
@@ -7,7 +7,7 @@ let zoomLevel = 9;
 /**
 	create a map to display the zarr image
 */
-function createMap(projectionCode){ 
+function createMap(){ 
 	//console.log("Creating the map...");
 	/*
 		projection
@@ -51,7 +51,7 @@ function createMap(projectionCode){
     return map;	
 }
 
-function refreshMapView(imageURL, projectionCode, extent, zoomLevel, zoomMin,zoomMax){
+function refreshMapView(imageURL, zoomLevel){
 
     //console.log(map.getView().getProjection().getCode());
 	const newView = new ol.View({
@@ -79,6 +79,40 @@ function refreshMapView(imageURL, projectionCode, extent, zoomLevel, zoomMin,zoo
 
 }
 
-function setMapZoom(zoomLevel){
-    map.getView().setZoom(zoomLevel);
+function getMapZoom(){
+    return map.getView().getZoom();
+}
+
+/**
+ * Update Map Zoom
+ */
+function updateMapZoom(level){
+    map.getView().setZoom(level);
+}
+
+/**
+ * Set Zoom Level property
+ */
+function setDesiredZoomLevel(level){
+    zoomLevel = level;
+}
+
+/**
+ * Get Zoom Level property
+ */
+function getDesiredZoomLevel(){
+    return zoomLevel;
+}
+
+function getMaxZoom(){
+    return zoomMax;
+}
+
+function getMinZoom(){
+    return zoomMin;
+}
+
+function onMapResolutionChange(callback){
+
+    map.getView().on('change:resolution', callback);
 }
