@@ -1,6 +1,5 @@
 let map;
-let projectionCode = "EPSG:32633";
-let extent = [];		
+let projectionCode = "EPSG:32633";		
 const zoomMin = 0;
 const zoomMax = 14;
 let zoomLevel = 9;	
@@ -21,6 +20,7 @@ function createMap(){
 	}
 	
 	var projection = ol.proj.get(projectionCode);
+    let imageExtent = getZarrExtent()
 	
 	/*
 		display the image on the map by using OpenLayers
@@ -34,14 +34,14 @@ function createMap(){
 				source: new ol.source.ImageStatic({            
 					url: imageURL,
 					projection: projection,
-					imageExtent: extent
+					imageExtent: imageExtent
 				})
 			})
 		],
 		target: 'map',
 		view: new ol.View({
 			projection: projection,
-			center: ol.extent.getCenter(extent),
+			center: ol.extent.getCenter(imageExtent),
 			zoom: zoomLevel,
 			minZoom: zoomMin,
 			maxZoom: zoomMax
@@ -53,10 +53,12 @@ function createMap(){
 
 function refreshMapView(imageURL, zoomLevel){
 
+    let imageExtent = getZarrExtent()
+
     //console.log(map.getView().getProjection().getCode());
 	const newView = new ol.View({
         projection: projectionCode,
-        center: ol.extent.getCenter(extent),
+        center: ol.extent.getCenter(imageExtent),
         zoom: zoomLevel,
         minZoom: zoomMin,
         maxZoom: zoomMax
@@ -67,7 +69,7 @@ function refreshMapView(imageURL, zoomLevel){
     const newSource = new ol.source.ImageStatic({            
             url: imageURL,
             projection: projectionCode,
-            imageExtent: extent
+            imageExtent: imageExtent
         });
 
     //console.log(map.getView());

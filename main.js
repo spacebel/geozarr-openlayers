@@ -1,4 +1,4 @@
-
+let canvas;
 /*
 	This function will be called at startup
 */
@@ -17,7 +17,8 @@ async function startup(){
 	var zarrUrl = zarrUrls[currentIndex][0];
 	
 	// call loadZarr(...) function
-	imageURL = await loadZarr(zarrUrl);
+	canvas = document.createElement('canvas');  
+	imageURL = await loadZarr(zarrUrl, canvas);
 	
 	// create a map to display the zarr image
 	createMap();
@@ -63,7 +64,7 @@ async function applyChange(){
 	
 	// call loadZarr(...) function
 	// assign the canvas data URL to the global variable imageURL 
-	imageURL = await loadZarr(zarrUrl);
+	imageURL = await loadZarr(zarrUrl,canvas);
 
 	//refresh Image view displayed on the Map.
 	refreshMapView(imageURL,zoomLevel);
