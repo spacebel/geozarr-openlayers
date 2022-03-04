@@ -43,6 +43,22 @@
         <i class="fa fa-spinner fa-spin loading-icon"></i>
 		-->
     </div>		
+	<div class="inputForm">
+		<span class="instruction">Enter the Zarr information that you wish to show on the map</span>
+		<br/>
+		<br/>
+		<label for="zarrUrl">Zazz URL:</label>		
+		<input type="text" id="zarrUrl" name="zarrUrl" size="100"/>		
+		<br/>
+		<br/>		
+		<label>RGB bands:</label>		
+		<input type="text" id="redBand" name="redBand" size="8"/>		
+		<input type="text" id="greenBand" name="greenBand" size="8"/>
+		<input type="text" id="blueBand" name="blueBand" size="8"/>		
+		<br/><br/>
+		<input type="button" value="Apply" onclick="applyChange()"/>		
+	</div>	 
+
 </body>
 
 </html>

@@ -1,5 +1,6 @@
 let imageURL;
-let zarrUrls = [];		
+let zarrUrls = [];	
+let zarrUrl;	
 let currentIndex = 0;
 let canvas;
 /*
@@ -17,7 +18,15 @@ async function startup(){
 	zarrUrls.push(["https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/s2_v1_multiscales/T33UWT/20210120","T33UWT 20/01/2021"]);
 	zarrUrls.push(["https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/s2_v1_multiscales/T33UWT/20210123","T33UWT 23/01/2021"]);			
 				
-	var zarrUrl = zarrUrls[currentIndex][0];
+	zarrUrl = zarrUrls[currentIndex][0];
+	/*
+		set default values to input fields
+	*/
+	setInputValue('zarrUrl',zarrUrl);		
+	setInputValue('redBand',redBand);
+	setInputValue('greenBand',greenBand);
+	setInputValue('blueBand',blueBand);
+
 	
 	// call loadZarr(...) function
 	canvas = document.createElement('canvas');  
@@ -63,7 +72,11 @@ async function applyChange(){
 	const loadingBar = document.getElementById('loadingBar');
 	loadingBar.style.display = 'table';
 	
-	var zarrUrl = zarrUrls[currentIndex][0];	
+	//retrieve values from the form
+	zarrUrl = getInputValue('zarrUrl');
+	redBand = getInputValue('redBand');
+	greenBand = getInputValue('greenBand');
+	blueBand = getInputValue('blueBand');
 	
 	// call loadZarr(...) function
 	// assign the canvas data URL to the global variable imageURL 
@@ -150,3 +163,28 @@ function toggleNavButtons(){
 		nextBtn.style.cursor = "pointer";
 	}
 }
+
+/*
+*	Set value to an input field
+*/
+function setInputValue(id,value){
+	var inputField = document.getElementById(id);
+	inputField.value = value;
+}
+/**
+ * Get input value from input field
+ * @param {*} id 
+ * @returns 
+ */
+function getInputValue(id){	
+	var value = "";
+	var inputField = document.getElementById(id);
+	if(inputField){
+		value = inputField.value;
+		if(value){
+			value = value.trim();
+		}
+	}
+	return value;
+}
+
