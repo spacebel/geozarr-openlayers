@@ -1,11 +1,11 @@
-let latitudeName = "y"; //Name used to represent the latitude variable in the zarr file.
-let longitudeName ="x"; //Name used to represent the longitude variable in the zarr file.
-let extent = [];
-const scaleFactor = 20;
-const slicing = [0];
-const redBand = "B04";
-const greenBand = "B03";
-const blueBand = "B02";
+let latitudeName = "y";  //Name used to represent the latitude variable in the zarr file.
+let longitudeName ="x";  //Name used to represent the longitude variable in the zarr file.
+let extent = [];         //Extent of the Zarr file
+const scaleFactor = 20;  //factor used for color computation
+const slicing = [0];     //Slicing on the zarr array (used for 3D zarr file)
+const redBand = "B04";   //Name of the red band (group/path)
+const greenBand = "B03"; //Name of the green band (group/path)
+const blueBand = "B02";  //Name of the blue band (group/path)
 /*
 	An async function to read Zarr data and then convert it into an image
 */	
