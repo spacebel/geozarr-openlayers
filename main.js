@@ -39,6 +39,7 @@ async function startup(){
 	setCurrentZoomButton();
 	setDateInfo();
 	toggleNavButtons();
+	generateSubsettingForm();
 }
 
 async function navigate(index){
@@ -187,5 +188,43 @@ function getInputValue(id){
 		}
 	}
 	return value;
+}
+
+function generateSubsettingForm(){
+	console.log('Generating subsetting form...');
+
+	subsettingForm = document.getElementById("subsetting-form");
+	let dimensions = getDimensions();
+	
+	dimensions.forEach( dim =>{
+		console.log('creating input for dimension: '+dim);
+
+		let label = document.createElement("label");
+		label.setAttribute("value",dim);
+		label.setAttribute("for", dim);
+		label.innerText = dim+" from : ";
+		subsettingForm.appendChild(label);
+		
+		let inputStart = document.createElement("input");
+		inputStart.setAttribute("type", "text");
+		inputStart.setAttribute("name", dim);
+		subsettingForm.appendChild(inputStart);
+
+		let middleLabel = document.createElement("label");
+		middleLabel.setAttribute("value",dim);
+		middleLabel.setAttribute("for", dim);
+		middleLabel.innerText = " to ";
+		subsettingForm.appendChild(middleLabel);
+
+		let inputEnd = document.createElement("input");
+		inputEnd.setAttribute("type", "text");
+		inputEnd.setAttribute("name", dim);
+		subsettingForm.appendChild(inputEnd);
+
+		let lineReturn = document.createElement("br");
+		subsettingForm.appendChild(lineReturn);
+		subsettingForm.appendChild(lineReturn);
+	});
+
 }
 

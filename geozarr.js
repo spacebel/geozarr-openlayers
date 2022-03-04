@@ -7,6 +7,7 @@ let redBand = "B04";   //Name of the red band (group/path)
 let greenBand = "B03"; //Name of the green band (group/path)
 let blueBand = "B02";  //Name of the blue band (group/path)
 let requestedExtent = ""
+let dimensions = []
 /*
 	An async function to read Zarr data and then convert it into an image
 */	
@@ -30,6 +31,12 @@ async function loadZarr(zarrUrl, canvas) {
                 paths.map(async p => {
                     const name = `${p}`; //Name of the band	
                     const arr = await grp.getItem(p + "/" + zoomLevel + "/band_data");
+                    
+                    //Fetch array attributes ad discover dimensions from it.
+                    console.log(arr)
+                    //let attributes = await arr.getItem(".zattrs");
+                    let attributes = arr.attrs;
+                    dimensions = await discoverDimensions(attributes);
                     
                     //Read Longitude & Latitude from zarr file.
                     const lonPath = p +"/"+ zoomLevel + "/"+longitudeName;
@@ -68,7 +75,15 @@ async function loadZarr(zarrUrl, canvas) {
 async function readXYData(zarrGroup, bandPath) {
     var item = await zarrGroup.getItem(bandPath);
 	return await item.getRaw(null);
-};
+}
+/**
+ * Retrive dimensions from array attributes (by reading _ARRAY_DIMENSION attribute)
+ * @param {*} arrayAttributes 
+ */
+async function discoverDimensions(arrayAttributes){
+    arrayDimensions = await arrayAttributes.getItem("_ARRAY_DIMENSIONS");
+    return arrayDimensions;
+}
 
 /**
  * Detect if coordinates are sorted in increasing or decreasing order.
@@ -250,6 +265,10 @@ function getClosestIndex(num,arr){
 	};
 	
 	return index;	
+}
+
+function getDimensions(){
+    return dimensions;
 }
 
 function getZarrExtent(){
