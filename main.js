@@ -77,6 +77,7 @@ async function applyChange(){
 	redBand = getInputValue('redBand');
 	greenBand = getInputValue('greenBand');
 	blueBand = getInputValue('blueBand');
+	setRequestedExtent(getInputValue("extent"))
 	
 	// call loadZarr(...) function
 	// assign the canvas data URL to the global variable imageURL 

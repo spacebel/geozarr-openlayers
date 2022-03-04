@@ -1,5 +1,5 @@
 let map;
-let projectionCode = "EPSG:32633";		
+let projectionCode = "EPSG:32633";	
 const zoomMin = 0;
 const zoomMax = 14;
 let zoomLevel = 9;	
@@ -21,11 +21,19 @@ function createMap(){
 	
 	var projection = ol.proj.get(projectionCode);
     let imageExtent = getZarrExtent()
+
+    const mousePositionControl = new ol.control.MousePosition({
+		coordinateFormat: ol.coordinate.createStringXY(4),
+		projection: projectionCode,
+		className: 'custom-mouse-position',
+		target: document.getElementById('mouse-position'),
+	});
 	
 	/*
 		display the image on the map by using OpenLayers
 	*/			
 	map = new ol.Map({
+        controls: ol.control.defaults().extend([mousePositionControl]),
 		layers: [
 			new ol.layer.Tile({
 				source: new ol.source.OSM(),
