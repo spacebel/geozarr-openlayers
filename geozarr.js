@@ -1,7 +1,7 @@
 let latitudeName = "y";  //Name used to represent the latitude variable in the zarr file.
 let longitudeName ="x";  //Name used to represent the longitude variable in the zarr file.
 let extent = [];         //Extent of the Zarr file
-const scaleFactor = 20;  //factor used for color computation
+const scaleFactor = 20;  //Factor used for color computation
 const slicing = [0];     //Slicing on the zarr array (used for 3D zarr file)
 const redBand = "B04";   //Name of the red band (group/path)
 const greenBand = "B03"; //Name of the green band (group/path)
