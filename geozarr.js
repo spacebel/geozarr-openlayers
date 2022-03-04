@@ -1,6 +1,11 @@
 let latitudeName = "y"; //Name used to represent the latitude variable in the zarr file.
 let longitudeName ="x"; //Name used to represent the longitude variable in the zarr file.
 let extent = [];
+const scaleFactor = 20;
+const slicing = [0];
+const redBand = "B04";
+const greenBand = "B03";
+const blueBand = "B02";
 /*
 	An async function to read Zarr data and then convert it into an image
 */	

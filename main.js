@@ -1,3 +1,6 @@
+let imageURL;
+let zarrUrls = [];		
+let currentIndex = 0;
 let canvas;
 /*
 	This function will be called at startup
