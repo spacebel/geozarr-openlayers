@@ -6,6 +6,7 @@ let extent = [];
 */	
 async function loadZarr(zarrUrl, canvas) {
 	const bands = ({ '': [redBand, greenBand, blueBand] });
+    let xData, yData;
 	// asynchronous load 
 	arrays = await Promise.all(
 	
@@ -20,107 +21,30 @@ async function loadZarr(zarrUrl, canvas) {
             
             // read date and then concatenate them (flat()) into an array
             const arrs = await Promise.all(
-            paths.map(async p => {
-                const name = `${p}`;	// ? Name of the band ?		
-                const arr = await grp.getItem(p + "/" + zoomLevel + "/band_data");
-                
-                //Read Longitude & Latitude from zarr file.
-                const lonPath = p +"/"+ zoomLevel + "/"+longitudeName;
-                var xData = await readXYData(grp,lonPath);
-                const latPath = p +"/"+ zoomLevel + "/"+latitudeName;
-                var yData = await readXYData(grp,latPath);
-                //Build Extent from latitude & longitude variables
-                extent = await buildExtent(yData,xData);
-
-                return { name, arr };
-            })
+                paths.map(async p => {
+                    const name = `${p}`;	// ? Name of the band ?		
+                    const arr = await grp.getItem(p + "/" + zoomLevel + "/band_data");
+                    
+                    //Read Longitude & Latitude from zarr file.
+                    const lonPath = p +"/"+ zoomLevel + "/"+longitudeName;
+                    xData = await readXYData(grp,lonPath);
+                    const latPath = p +"/"+ zoomLevel + "/"+latitudeName;
+                    yData = await readXYData(grp,latPath);
+                    //Build Extent from latitude & longitude variables
+                    extent = await buildExtent(yData,xData);
+                    return { name, arr };
+                })
             );
-            
             return arrs;
 	  })
 	).then(arr => arr.flat());
-	
-	console.log("extent = " + extent);
 
 	// iterate the array to get all data
-	data = await Promise.all(arrays.map(async d => [d.name, await d.arr.get(slicing)]));
-	console.log(data);			
+	let data = await Promise.all(arrays.map(async d => [d.name, await d.arr.get(slicing)]));
 
-	/*
-		convert zarr data into an image
-	*/		
-
-	// get image size (height and width) from shape attribute			
-	let height = data[0][1].shape[data[0][1].shape.length -2];
-	let width = data[0][1].shape[data[0][1].shape.length -1];
-	
-	let xlen=width;
-	let ylen=height;	
-				
-	//set width and height of the Zarr image to the canvas size
-	canvas.width=xlen;
-	canvas.height=ylen;  
-	
-	const ctx = canvas.getContext('2d');
-	const imageData = ctx.createImageData(width, height);
-
-	let offset = 0;			
-	
-    //detect the order of x and y
-	let xIncrease = true;
-	for (let x = 0; x < xlen; x += 1) {		
-		if(data[0][1].data[0][0] !== data[0][1].data[0][x]){
-			if(data[0][1].data[0][0] >= data[0][1].data[0][x]){
-				xIncrease = false;				
-			}
-			break;
-		}
-	}
-	
-	let yIncrease = true;
-	for (let x = 0; x < xlen; x += 1) {	
-		if(data[0][1].data[0][0] !== data[0][1].data[0][x]){
-			if(data[0][1].data[1][0] >= data[0][1].data[1][x]){
-				yIncrease = false;				
-			}
-			break;
-		}
-	}	
-	
-	for (let x = 0; x < xlen; x += 1) {		
-		for (let y = 0; y < ylen; y += 1) {
-			let xi = x;
-			if(!xIncrease) {
-				xi= (xlen -1) -x;
-			}
-			let yi = y;
-			if(!yIncrease) {
-				yi = (ylen - 1) - y;
-			}			
+	//convert zarr data into an image	
+    drawImage(canvas, data, yData, xData)
 			
-			let red = data[0][1].data[xi][yi]/scaleFactor;
-			let green = data[1][1].data[xi][yi]/scaleFactor;
-			let blue = data[2][1].data[xi][yi]/scaleFactor;
-			
-			imageData.data[offset + 0] = red; // R value
-			imageData.data[offset + 1] = green; // G value
-			imageData.data[offset + 2] = blue; // B value
-			imageData.data[offset + 3] = 255;
-			/*
-			if(green > 0){
-				// if the green component value is higher than 250 make the pixel transparent
-				imageData.data[offset + 3] = 0;
-			}else{
-				imageData.data[offset + 3] = 255;
-			}			
-			*/
-			offset +=4;
-		}
-	}
-	
-	// Draw image data to the canvas
-	ctx.putImageData(imageData, 0, 0);		
-	
 	// Return the canvas data URL
 	return canvas.toDataURL();
 }
@@ -129,6 +53,24 @@ async function readXYData(zarrGroup, bandPath) {
     var item = await zarrGroup.getItem(bandPath);
 	return await item.getRaw(null);
 };
+
+/**
+ * Detect if coordinates are sorted in increasing or decreasing order.
+ * @param {*} coordinates 
+ * @returns TRUE if coordinates are sorted in ascending order
+ */
+function isAscending(coordinates){
+    let ascending = true;
+	for (let x = 0; x < coordinates.length; x += 1) {		
+		if(coordinates.data[0][0] !== coordinates.data[0][x]){
+			if(coordinates.data[0][0] >= coordinates.data[0][x]){
+				ascending = false;				
+			}
+			break;
+		}
+	}
+	return ascending;
+}
 
 /**
  * Build Extent from latitude & longitude variables
@@ -166,6 +108,79 @@ async function buildExtent(yData,xData){
     // Build the extent
 	extent = [minx,miny,maxx,maxy];
     return extent;
+}
+/**
+ * Draw Image to canvas using Zarr values
+ * @param {*} canvas 
+ * @param {*} data 
+ * @param {*} yData 
+ * @param {*} xData 
+ */
+function drawImage(canvas, data, yData, xData){
+    // get image size (height and width) from shape attribute			
+	let height = data[0][1].shape[data[0][1].shape.length -2];
+	let width = data[0][1].shape[data[0][1].shape.length -1];
+	
+	//set width and height of the Zarr image to the canvas size
+	canvas.width=width;
+	canvas.height=height;  
+	
+	const ctx = canvas.getContext('2d');
+	const imageData = ctx.createImageData(width, height);
+
+    //Fill image from zarr values
+    fillImage(imageData,data,yData,xData)
+
+    // Draw image data to the canvas
+	ctx.putImageData(imageData, 0, 0);
+}
+/**
+ * Fill canvas image with zarr values
+ * @param {*} imageData 
+ * @param {*} data 
+ * @param {*} yData 
+ * @param {*} xData 
+ */
+function fillImage(imageData,data, yData, xData){
+
+	let offset = 0;	
+    let xlen = imageData.width;
+    let ylen = imageData.height;
+	
+    //detect the order of x and y
+	let xIncrease = isAscending(xData);
+	let yIncrease = isAscending(yData);
+	
+	for (let x = 0; x < xlen; x += 1) {		
+		for (let y = 0; y < ylen; y += 1) {
+			let xi = x;
+			if(!xIncrease) {
+				xi= (xlen -1) -x;
+			}
+			let yi = y;
+			if(!yIncrease) {
+				yi = (ylen - 1) - y;
+			}			
+			
+			let red = data[0][1].data[xi][yi]/scaleFactor;
+			let green = data[1][1].data[xi][yi]/scaleFactor;
+			let blue = data[2][1].data[xi][yi]/scaleFactor;
+			
+			imageData.data[offset + 0] = red; // R value
+			imageData.data[offset + 1] = green; // G value
+			imageData.data[offset + 2] = blue; // B value
+			imageData.data[offset + 3] = 255;
+			/*
+			if(green > 0){
+				// if the green component value is higher than 250 make the pixel transparent
+				imageData.data[offset + 3] = 0;
+			}else{
+				imageData.data[offset + 3] = 255;
+			}			
+			*/
+			offset +=4;
+		}
+	}
 }
 
 function getZarrExtent(){
