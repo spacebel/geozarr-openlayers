@@ -27,7 +27,7 @@ async function loadZarr(zarrUrl, canvas) {
             // read date and then concatenate them (flat()) into an array
             const arrs = await Promise.all(
                 paths.map(async p => {
-                    const name = `${p}`;	// ? Name of the band ?		
+                    const name = `${p}`; //Name of the band	
                     const arr = await grp.getItem(p + "/" + zoomLevel + "/band_data");
                     
                     //Read Longitude & Latitude from zarr file.
