@@ -13,7 +13,7 @@ let dimensionsArrays = [];
 /*
 	An async function to read Zarr data and then convert it into an image
 */	
-async function loadZarr(zarrUrl, canvas, subsetting = {}) {
+async function loadZarr(zarrUrl, canvas, subsetting = []) {
 	const bands = ({ '': [redBand, greenBand, blueBand] });
     let xData, yData;
 
@@ -53,13 +53,7 @@ async function loadZarr(zarrUrl, canvas, subsetting = {}) {
                     dimensionsArrays[longitudeName] = xData;
                     dimensionsArrays[latitudeName] = yData;
 
-                    //Build Extent from latitude & longitude variables
-                    if(requestedExtent != ""){
-                        requestedExtentValues = requestedExtent.split(",")
-                        extent = requestedExtentValues.map(Number);
-                    }else{
-                        extent = await buildExtent(yData,xData);
-                    }
+                   
                     console.log("Extent: ")
                     console.log(extent)
                     
@@ -69,6 +63,38 @@ async function loadZarr(zarrUrl, canvas, subsetting = {}) {
             return arrs;
 	  })
 	).then(arr => arr.flat());
+	 
+	//Build Extent from latitude & longitude variables
+	if(requestedExtent != ""){
+		requestedExtentValues = requestedExtent.split(",")
+		extent = requestedExtentValues.map(Number);
+		console.log("Unsing requested extent")
+	}else if( subsetting[latitudeName] != undefined && subsetting[longitudeName] != undefined){
+		minx = Number(subsetting[longitudeName].start);
+		miny = Number(subsetting[latitudeName].start);
+		maxx = Number(subsetting[longitudeName].end);
+		maxy = Number(subsetting[latitudeName].end);
+
+		//reverve X(min,max) and Y(min,max) in case of incorrect order
+		if(minx > maxx){
+			let tmpx = maxx;
+			maxx = minx;
+			minx = tmpx;
+		}
+		if(miny > maxy){
+			let tmpy = maxy;
+			maxy = miny;
+			miny = tmpy;
+		}
+		
+		extent = [minx,miny,maxx,maxy];
+		console.log("Using computed extent: ")
+		console.log(extent);
+	}
+	else{
+		extent = await buildExtent(yData,xData);
+		console.log("Using default extent")
+	}
 
 	// iterate the array to get all data for the requested subset
     let data = await getZarrData(subsetting,dimensionsArrays,arrays)
