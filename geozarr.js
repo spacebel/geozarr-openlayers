@@ -262,7 +262,7 @@ function fillImage(imageData,data, yData, xData){
  * @param {*} zarrArays 
  * @returns 
  */
-async function getZarrData(subset, dimensionArrays,zarrArays){
+async function getZarrData(subset, dimensionArrays,zarrArrays){
 	let slices = [firstDimSlicing];//Initialize slicing array with slicing on first dimension (band dim for S2)
 						
 	Object.keys(subset).forEach( dim =>{
@@ -292,10 +292,30 @@ async function getZarrData(subset, dimensionArrays,zarrArays){
 	});
 	console.log("Slicing data: ");
 	console.log(slices);
-	//console.log("Indexes: lon(" + lon1 + "," + lon2 + "); lat(" + lat1 + "," + lat2 + ")");		
+	//console.log("Indexes: lon(" + lon1 + "," + lon2 + "); lat(" + lat1 + "," + lat2 + ")");	
+	
+	console.log(zarrArrays)	
     	
-	//let result = await Promise.all(zarrArays.map(async d => [d.name, await d.arr.get([0,zarr.slice(0,600),zarr.slice(0,600)])]));		
-	let result = await Promise.all(zarrArays.map(async d => [d.name, await d.arr.get(slices)]));	
+	//let result = await Promise.all(zarrArays.map(async d => [d.name, await d.arr.get([0,zarr.slice(0,600),zarr.slice(0,600)])]));	
+	let result = [];
+	let bandDataFetchingPromises = [];
+	for(let index = 0; index < zarrArrays.length; index += 1){
+		
+		//zarrArays.map(async band => [band.name, await band.arr.get(slices)]));
+		bandPath = zarrArrays[index].name;
+		let bandName = bandPath;
+		console.log("Creating promise for band: "+bandName);
+		//if band[...] -> extract index and use it as first dimension slicing
+		//Register data fecthing promise 
+		bandDataFetchingPromises.push(
+			zarrArrays[index].arr.get(slices)
+						.then((values)=>{return [bandName,values]})//append band_name/array in the result object.
+		);
+	}
+	console.log("promises created:"+bandDataFetchingPromises.length)
+	//Wait for all zarr data arrays to be downloaded
+	result = await Promise.all(bandDataFetchingPromises);
+			
 	console.log(result);
     return result;
 }
