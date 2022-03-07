@@ -7,16 +7,19 @@ let redBand = "B04";   //Name of the red band (group/path)
 let greenBand = "B03"; //Name of the green band (group/path)
 let blueBand = "B02";  //Name of the blue band (group/path)
 let requestedExtent = ""
+let subset = []
 let dimensions = []
 /*
 	An async function to read Zarr data and then convert it into an image
 */	
-async function loadZarr(zarrUrl, canvas) {
+async function loadZarr(zarrUrl, canvas, subsetting = {}) {
 	const bands = ({ '': [redBand, greenBand, blueBand] });
     let xData, yData;
+
+	console.log("Loading zarr subset: ");
+	console.log(subsetting);
 	// asynchronous load 
 	arrays = await Promise.all(
-	
 		// iterate on bands array defined 
 		Object.entries(bands).map(async ([w,paths]) => {
 		
@@ -43,6 +46,13 @@ async function loadZarr(zarrUrl, canvas) {
                     xData = await readXYData(grp,lonPath);
                     const latPath = p +"/"+ zoomLevel + "/"+latitudeName;
                     yData = await readXYData(grp,latPath);
+                    
+                    //Copy reference of lat/lon arrays in the dictionnary of dimensions (used for subsetting)
+                    dimensionsArrays = {};
+                    dimensionsArrays['longitudeName'] = xData;
+                    dimensionsArrays['latitudeName'] = yData;
+
+
 
                     //Build Extent from latitude & longitude variables
                     if(requestedExtent != ""){

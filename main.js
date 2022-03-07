@@ -79,10 +79,11 @@ async function applyChange(){
 	greenBand = getInputValue('greenBand');
 	blueBand = getInputValue('blueBand');
 	setRequestedExtent(getInputValue("extent"))
+	let subset = getSubsetValues();
 	
 	// call loadZarr(...) function
 	// assign the canvas data URL to the global variable imageURL 
-	imageURL = await loadZarr(zarrUrl,canvas);
+	imageURL = await loadZarr(zarrUrl,canvas,subset);
 
 	//refresh Image view displayed on the Map.
 	refreshMapView(imageURL,zoomLevel);
@@ -208,6 +209,7 @@ function generateSubsettingForm(){
 		let inputStart = document.createElement("input");
 		inputStart.setAttribute("type", "text");
 		inputStart.setAttribute("name", dim);
+		inputStart.setAttribute("id", dim+"_start");
 		subsettingForm.appendChild(inputStart);
 
 		let middleLabel = document.createElement("label");
@@ -219,6 +221,7 @@ function generateSubsettingForm(){
 		let inputEnd = document.createElement("input");
 		inputEnd.setAttribute("type", "text");
 		inputEnd.setAttribute("name", dim);
+		inputEnd.setAttribute("id", dim+"_end");
 		subsettingForm.appendChild(inputEnd);
 
 		let lineReturn = document.createElement("br");
@@ -226,5 +229,22 @@ function generateSubsettingForm(){
 		subsettingForm.appendChild(lineReturn);
 	});
 
+}
+
+function getSubsetValues(){
+
+	subsettingForm = document.getElementById("subsetting-form");
+	let dimensions = getDimensions();
+	let subset = [];
+	
+	dimensions.forEach( dim =>{
+		console.log('reading input for dimension: '+dim);
+		
+		let inputStart = document.getElementById(dim+"_start");
+		let inputEnd = document.getElementById(dim+"_end");
+		subset[dim] = { "start": inputStart.value,"end": inputEnd.value};
+	});
+
+	return subset;
 }
 
