@@ -2,13 +2,14 @@ let latitudeName = "y";  //Name used to represent the latitude variable in the z
 let longitudeName ="x";  //Name used to represent the longitude variable in the zarr file.
 let extent = [];         //Extent of the Zarr file
 const scaleFactor = 20;  //Factor used for color computation
-const slicing = [0];     //Slicing on the zarr array (used for 3D zarr file)
+const firstDimSlicing = 0;     //Slicing on the zarr array (used for 3D zarr file)
 let redBand = "B04";   //Name of the red band (group/path)
 let greenBand = "B03"; //Name of the green band (group/path)
 let blueBand = "B02";  //Name of the blue band (group/path)
 let requestedExtent = ""
 let subset = []
 let dimensions = []
+let dimensionsArrays = [];
 /*
 	An async function to read Zarr data and then convert it into an image
 */	
@@ -28,7 +29,7 @@ async function loadZarr(zarrUrl, canvas, subsetting = {}) {
             
             // open group
             const grp = await zarr.openGroup(store);
-            
+           
             // read date and then concatenate them (flat()) into an array
             const arrs = await Promise.all(
                 paths.map(async p => {
@@ -48,11 +49,9 @@ async function loadZarr(zarrUrl, canvas, subsetting = {}) {
                     yData = await readXYData(grp,latPath);
                     
                     //Copy reference of lat/lon arrays in the dictionnary of dimensions (used for subsetting)
-                    dimensionsArrays = {};
-                    dimensionsArrays['longitudeName'] = xData;
-                    dimensionsArrays['latitudeName'] = yData;
-
-
+					dimensionsArrays = [];
+                    dimensionsArrays[longitudeName] = xData;
+                    dimensionsArrays[latitudeName] = yData;
 
                     //Build Extent from latitude & longitude variables
                     if(requestedExtent != ""){
@@ -72,7 +71,7 @@ async function loadZarr(zarrUrl, canvas, subsetting = {}) {
 	).then(arr => arr.flat());
 
 	// iterate the array to get all data for the requested subset
-    let data = await getZarrData(extent,yData, xData,arrays)
+    let data = await getZarrData(subsetting,dimensionsArrays,arrays)
 	//let data = await Promise.all(arrays.map(async d => [d.name, await d.arr.get(slicing)]));
 
 	//convert zarr data into an image	
@@ -160,13 +159,16 @@ async function buildExtent(yData,xData){
 function drawImage(canvas, data, yData, xData){
     // get image size (height and width) from shape attribute			
 	let height = data[0][1].shape[data[0][1].shape.length -2];
+	console.log("height: "+height);
 	let width = data[0][1].shape[data[0][1].shape.length -1];
+	console.log("width: "+width);
 	
 	//set width and height of the Zarr image to the canvas size
 	canvas.width=width;
 	canvas.height=height;  
 	
 	const ctx = canvas.getContext('2d');
+	//ctx.clearRect(0, 0, canvas.width, canvas.height); //clear canvas
 	const imageData = ctx.createImageData(width, height);
 
     //Fill image from zarr values
@@ -185,8 +187,10 @@ function drawImage(canvas, data, yData, xData){
 function fillImage(imageData,data, yData, xData){
 
 	let offset = 0;	
-    let xlen = imageData.width;
-    let ylen = imageData.height;
+    //let xlen = imageData.width;
+    //let ylen = imageData.height;
+	let xlen = data[0][1].data.length;
+	let ylen = data[0][1].data[0].length;
 	
     //detect the order of x and y
 	let xIncrease = isAscending(xData);
@@ -222,6 +226,7 @@ function fillImage(imageData,data, yData, xData){
 			offset +=4;
 		}
 	}
+	console.log("Image drawn")
 }
 /**
  * fetch zarr data subset based on the desired extent.
@@ -231,34 +236,42 @@ function fillImage(imageData,data, yData, xData){
  * @param {*} zarrArays 
  * @returns 
  */
-async function getZarrData(desiredExtent, latArray, lonArray,zarrArays){
-    let minLonIndex = getClosestIndex(desiredExtent[0],lonArray.data);
-	let minLatIndex = getClosestIndex(desiredExtent[1],latArray.data);
+async function getZarrData(subset, dimensionArrays,zarrArays){
+	let slices = [firstDimSlicing];//Initialize slicing array with slicing on first dimension (band dim for S2)
 						
-	let maxLonIndex = getClosestIndex(desiredExtent[2],lonArray.data);
-	let maxLatIndex = getClosestIndex(desiredExtent[3],latArray.data);
+	Object.keys(subset).forEach( dim =>{
+		let value = subset[dim];
+		console.log("Dimension "+dim+" start "+value.start+" end "+value.end);
+
+		
+		if(dimensionArrays[dim] != undefined){
+			//console.log("dimension array: ");
+			//console.log(dimensionArrays[dim])
+			let startIndex = null, endIndex = null;
+			startIndex =  getClosestIndex(parseFloat(value.start),dimensionArrays[dim].data);
+			endIndex =  getClosestIndex(parseFloat(value.end),dimensionArrays[dim].data);
+
+			console.log("Start index: "+startIndex);
+			console.log("End index: "+endIndex);
 			
-	var lat1,lat2,lon1,lon2;
-	if(minLonIndex < maxLonIndex){
-		lon1 = minLonIndex;
-		lon2 = maxLonIndex;
-	}else{
-		lon1 = maxLonIndex;
-		lon2 = minLonIndex;
-	}
-						
-	if(minLatIndex < maxLatIndex){
-		lat1 = minLatIndex;
-		lat2 = maxLatIndex;
-	}else{
-		lat1 = maxLatIndex;
-		lat2 = minLatIndex;
-	}	
-			
-	console.log("Indexes: lon(" + lon1 + "," + lon2 + "); lat(" + lat1 + "," + lat2 + ")");		
-    firstDimSlicing = slicing;	
-	data = await Promise.all(zarrArays.map(async d => [d.name, await d.arr.get(firstDimSlicing,[zarr.slice(lat1,lat2),zarr.slice(lon1,lon2)])]));		
-    return data;
+			let dimensionSlice = null;
+			if(startIndex !== null && endIndex !== null){ //If indexes are not null
+				dimensionSlice = zarr.slice(startIndex,endIndex);
+				console.log("Creating dimension slice: ");
+				console.log(dimensionSlice);
+			}
+			slices.push(dimensionSlice);
+		}
+
+	});
+	console.log("Slicing data: ");
+	console.log(slices);
+	//console.log("Indexes: lon(" + lon1 + "," + lon2 + "); lat(" + lat1 + "," + lat2 + ")");		
+    	
+	//let result = await Promise.all(zarrArays.map(async d => [d.name, await d.arr.get([0,zarr.slice(0,600),zarr.slice(0,600)])]));		
+	let result = await Promise.all(zarrArays.map(async d => [d.name, await d.arr.get(slices)]));	
+	console.log(result);
+    return result;
 }
 
 function getClosestIndex(num,arr){
