@@ -200,8 +200,11 @@ function generateSubsettingForm(){
 	subsettingForm = document.getElementById("subsetting-form");
 	let dimensions = getDimensions();
 	let dimensionsValues = getDimensionsValues();
-	
-	
+
+	let title = document.createElement("h2");
+	title.innerText = "Subsetting";
+	subsettingForm.appendChild(title);
+
 	dimensions.forEach( dim =>{
 		console.log('creating input for dimension: '+dim);
 
@@ -238,7 +241,9 @@ function generateSubsettingForm(){
 
 			let lineReturn = document.createElement("br");
 			subsettingForm.appendChild(lineReturn);
-			subsettingForm.appendChild(lineReturn);
+
+			let secondLineReturn = document.createElement("br");
+			subsettingForm.appendChild(secondLineReturn);
 		}
 	});
 }

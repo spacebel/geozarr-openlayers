@@ -71,3 +71,8 @@ span.date-info{
     font-family: 'Source Sans Pro',sans-serif;
     font-size: 14px;
 }
+
+.selection-panel{
+    display: flex; 
+    gap: 5%;
+}

@@ -53,8 +53,8 @@
 			<option label ="Sentinel-2" value="https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/s2_v1_multiscales_4326/T33UWT/20210727" selected>Sentinel-2</option>
 			<option label ="Prisma" value="https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/prisma_v2_multiscales/20210608/">Prisma</option>
 		</select>
-		<br/>
-		<br/>
+
+
 		<label for="projectionCode">Projection code:</label>
 		<select id="projectionCode">
 			<option value="EPSG:4326" selected>EPSG:4326</option>
@@ -62,21 +62,32 @@
 		</select>
 		<br/>
 		<br/>
-		<label>RGB bands:</label>		
-		<input type="text" id="redBand" name="redBand" size="20"/>		
-		<input type="text" id="greenBand" name="greenBand" size="20"/>
-		<input type="text" id="blueBand" name="blueBand" size="20"/>		
-		<br/>
-		<br/>
-		<!--
-		<label for="extent">Extent:</label>	
-		<input type="text" id="extent" name="extent" size="80"/>	
-		<br/>	
-		<br/>	
-		-->
-		<div id="subsetting-form">
-			<!-- Generated from Javascript.-->
+
+		<div class="selection-panel">
+			<!-- Band panel -->
+			<div>
+				<h2>RGB bands</h2>		
+				<label for="redBand">Red band: </label>
+				<input type="text" id="redBand" name="redBand" size="20"/>
+				<br/><br/>	
+
+				<label for="greenBand">Green band: </label>
+				<input type="text" id="greenBand" name="greenBand" size="20"/>
+				<br/><br/>
+
+				<label for="blueBand">Blue band: </label>
+				<input type="text" id="blueBand" name="blueBand" size="20"/>	
+			</div>
+
+
+			<div></div>
+				
+			<!-- subsetting panel -->
+			<div id="subsetting-form">
+				<!-- Generated from Javascript.-->
+			</div>
 		</div>
+		
 		<br/>	
 		<br/>
 		<input type="button" value="Apply" onclick="applyChange()"/>		
