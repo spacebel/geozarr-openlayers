@@ -23,9 +23,10 @@ async function startup(){
 	registerResolutionChangeCallback();
 	
 	setCurrentZoomButton();
-	setDateInfo();
-	toggleNavButtons();
 	generateSubsettingForm();
+	//setDateInfo();
+	//toggleNavButtons();
+	
 }
 
 async function navigate(index){
