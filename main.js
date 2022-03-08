@@ -269,6 +269,9 @@ function getSubsetValues(){
 	return subset;
 }
 
+/**
+ * Update band fields with valuesmatching the product (predefined values).
+ */
 function setBandFieldsWithPredefinedValues(){
 
 	let selectionField = document.getElementById("zarrUrl");
@@ -289,10 +292,33 @@ function setBandFieldsWithPredefinedValues(){
 	}
 }
 
+/**
+ * Update selected projection code with the one matching the product (predefined values).
+ */
+function setProjectionForCurrentProduct(){
+	let selectionField = document.getElementById("zarrUrl");
+	let productName = selectionField.options[selectionField.selectedIndex].label;
+	console.log("Product selected: "+productName);
+
+	//projectionField = document.getElementById('projectionCode');
+	//projectionField.options[projectionField.selectedIndex].value;
+
+	switch(productName){
+		case "Prisma":
+			setInputValue('projectionCode',"EPSG:32630");
+			
+			break;
+		case "Sentinel-2":
+			setInputValue('projectionCode',"EPSG:4326");
+			break;
+	}
+}
+
 function productSelectionChanged(){
 
 	clearSubsettingForm();
 	setBandFieldsWithPredefinedValues();
+	setProjectionForCurrentProduct();
 	//changeZoomLevel(3);
 }
 
