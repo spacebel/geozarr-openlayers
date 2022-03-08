@@ -6,9 +6,6 @@ const firstDimSlicing = 0;     //Slicing on the zarr array (used for 3D zarr fil
 let redBand = "B04/band_data[0]";   //Name of the red band (group/path)
 let greenBand = "B03/band_data[0]"; //Name of the green band (group/path)
 let blueBand = "B02/band_data[0]";  //Name of the blue band (group/path)
-//let redBand = "/reflectance[21]";   //Name of the red band (group/path)
-//let greenBand = "/reflectance[17]"; //Name of the green band (group/path)
-//let blueBand = "/reflectance[13]";  //Name of the blue band (group/path)
 let requestedExtent = ""
 let subset = []
 let dimensions = []
@@ -285,15 +282,13 @@ function fillImage(imageData,data, yData, xData){
 			imageData.data[offset + 0] = red; // R value
 			imageData.data[offset + 1] = green; // G value
 			imageData.data[offset + 2] = blue; // B value
-			imageData.data[offset + 3] = 255;
-			/*
-			if(green > 0){
-				// if the green component value is higher than 250 make the pixel transparent
-				imageData.data[offset + 3] = 0;
-			}else{
+			
+			//If all visible colors combined have a value below 10 -> Consider it should be transparent.
+			if (red + green + blue < 10) {
+				imageData.data[offset + 3] = 0; // alpha value
+			} else {
 				imageData.data[offset + 3] = 255;
-			}			
-			*/
+			}
 			offset +=4;
 		}
 	}
@@ -363,7 +358,7 @@ async function getZarrData(subset, dimensionArrays,zarrArrays){
 				//Retrive index corresponding to the requested value.
 				firstDimensionSlicing = getClosestIndex(firstDimensionSlicing,firstDimensionValues);
 			}
-			
+
 			//Add first dimension slice at the beginning of the array of slices.
 			bandSlices.unshift(firstDimensionSlicing);
 			console.log("Added slice index, now slicing with:");
