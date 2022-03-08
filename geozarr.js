@@ -308,7 +308,7 @@ function fillImage(imageData,data, yData, xData){
  * @returns 
  */
 async function getZarrData(subset, dimensionArrays,zarrArrays){
-	let slices = [];//Initialize slicing array with slicing on first dimension (band dim for S2)
+	let slices = [];//Initialize slicing array
 						
 	Object.keys(subset).forEach( dim =>{
 		let value = subset[dim];
@@ -318,20 +318,14 @@ async function getZarrData(subset, dimensionArrays,zarrArrays){
 		if(dimensionArrays[dim] != undefined 
 			&& dimensionArrays[dim].start !== undefined && dimensionArrays[dim].start.length > 0 
 			&& dimensionArrays[dim].end !== undefined && dimensionArrays[dim].end.length > 0){
-			//console.log("dimension array: ");
-			//console.log(dimensionArrays[dim])
+			
 			let startIndex = null, endIndex = null;
 			startIndex =  getClosestIndex(parseFloat(value.start),dimensionArrays[dim].data);
 			endIndex =  getClosestIndex(parseFloat(value.end),dimensionArrays[dim].data);
-
-			console.log("Start index: "+startIndex);
-			console.log("End index: "+endIndex);
 			
 			let dimensionSlice = null;
 			if(startIndex !== null && endIndex !== null){ //If indexes are not null
 				dimensionSlice = zarr.slice(startIndex,endIndex);
-				console.log("Creating dimension slice: ");
-				console.log(dimensionSlice);
 			}
 			slices.push(dimensionSlice);
 		}
@@ -358,6 +352,19 @@ async function getZarrData(subset, dimensionArrays,zarrArrays){
 		if(bandPath.indexOf('[') > -1 && bandPath.indexOf(']') > -1){
 			firstDimensionSlicing= bandPath.substring(bandPath.indexOf('[')+1,bandPath.indexOf(']'));
 			firstDimensionSlicing = Number(firstDimensionSlicing);
+
+			//Retrieve index value//Only convert from coordinates to index for 3D array (not used for Sentinel-2 products)
+			//because the band dimension of sentinel 2 products is not present in dimensionArrays
+			if(Object.keys(dimensionArrays).length > 2){
+				//List keys present in dimensionArrays (because it is an object and not really an array).
+				keyOfFirstDimension = Object.keys(dimensionArrays)[0];
+				//Retrieve values from the first dimension
+				firstDimensionValues= dimensionArrays[keyOfFirstDimension].data;
+				//Retrive index corresponding to the requested value.
+				firstDimensionSlicing = getClosestIndex(firstDimensionSlicing,firstDimensionValues);
+			}
+			
+			//Add first dimension slice at the beginning of the array of slices.
 			bandSlices.unshift(firstDimensionSlicing);
 			console.log("Added slice index, now slicing with:");
 			console.log(bandSlices);

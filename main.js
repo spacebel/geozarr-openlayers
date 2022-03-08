@@ -281,9 +281,9 @@ function setBandFieldsWithPredefinedValues(){
 
 	switch(productName){
 		case "Prisma":
-			setInputValue('redBand',"/reflectance[21]");
-			setInputValue('greenBand',"/reflectance[17]");
-			setInputValue('blueBand',"/reflectance[13]");
+			setInputValue('redBand',"/reflectance[560]");
+			setInputValue('greenBand',"/reflectance[530]");
+			setInputValue('blueBand',"/reflectance[430]");
 			break;
 		case "Sentinel-2":
 			setInputValue('redBand',"B04/band_data[0]");
