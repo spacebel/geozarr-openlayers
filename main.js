@@ -8,22 +8,10 @@ let canvas;
 */
 async function startup(){
 	//	initialize list of Zarr
-	zarrUrls.push(["https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/s2_v1_multiscales/T33UWT/20210103","T33UWT 03/01/2021"]);
-	zarrUrls.push(["https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/s2_v1_multiscales/T33UWT/20210105","T33UWT 05/01/2021"]);
-	zarrUrls.push(["https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/s2_v1_multiscales/T33UWT/20210108","T33UWT 08/01/2021"]);
-	zarrUrls.push(["https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/s2_v1_multiscales/T33UWT/20210110","T33UWT 10/01/2021"]);
-	zarrUrls.push(["https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/s2_v1_multiscales/T33UWT/20210113","T33UWT 13/01/2021"]);
-	zarrUrls.push(["https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/s2_v1_multiscales/T33UWT/20210115","T33UWT 15/01/2021"]);
-	zarrUrls.push(["https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/s2_v1_multiscales/T33UWT/20210118","T33UWT 18/01/2021"]);
-	zarrUrls.push(["https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/s2_v1_multiscales/T33UWT/20210120","T33UWT 20/01/2021"]);
-	zarrUrls.push(["https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/s2_v1_multiscales/T33UWT/20210123","T33UWT 23/01/2021"]);			
-				
-	//zarrUrl = zarrUrls[currentIndex][0];
+			
 	zarrUrl = "https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/s2_v1_multiscales_4326/T33UWT/20210103";
-	//zarrUrl = "https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/prisma_v2_multiscales/20210608/";
-	/*
-		set default values to input fields
-	*/
+	
+	//set default values to input fields
 	setInputValue('zarrUrl',zarrUrl);		
 	setInputValue('redBand',redBand);
 	setInputValue('greenBand',greenBand);
@@ -96,6 +84,10 @@ async function applyChange(){
 	
 	loadingBar.style.display = 'none';
 	setCurrentZoomButton();
+
+	if(document.getElementById("subsetting-form").innerHTML === ""){
+		generateSubsettingForm();
+	}
 }
 
 function registerResolutionChangeCallback(){
@@ -195,6 +187,17 @@ function getInputValue(id){
 	return value;
 }
 
+function getZarrUrl(){
+	var value = "";
+	var selectionField = document.getElementById(id);
+	value = selectionField.options[selectionField.selectedIndex].value;
+
+	if(value){
+		value = value.trim();
+	}
+	return value;
+}
+
 function generateSubsettingForm(){
 	console.log('Generating subsetting form...');
 
@@ -243,6 +246,21 @@ function generateSubsettingForm(){
 		}
 		
 	});
+
+}
+
+function clearSubsettingForm(){
+	console.log("Clearing subsetting form...")
+	subsettingForm = document.getElementById("subsetting-form");
+	subsettingForm.innerHTML="";
+	
+	//let dimensions = getDimensions();
+
+	//dimensions.forEach( dim =>{
+	//
+	//	document.getElementById(dim+"_start").value ='';
+	//	document.getElementById(dim+"_end").value ='';
+	//});
 
 }
 
