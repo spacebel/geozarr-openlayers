@@ -49,9 +49,9 @@
 		<br/>
 		<label for="zarrUrl">Zarr URL:</label>		
 		<!--<input type="text" id="zarrUrl" name="zarrUrl" size="150" onchange="clearSubsettingForm()" />-->	
-		<select id="zarrUrl" onchange="clearSubsettingForm()">
-			<option value="https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/s2_v1_multiscales_4326/T33UWT/20210103" selected>Sentinel-2</option>
-			<option value="https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/prisma_v2_multiscales/20210608/">Prisma</option>
+		<select id="zarrUrl" onchange="productSelectionChanged()">
+			<option label ="Sentinel-2" value="https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/s2_v1_multiscales_4326/T33UWT/20210103" selected>Sentinel-2</option>
+			<option label ="Prisma" value="https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/prisma_v2_multiscales/20210608/">Prisma</option>
 		</select>
 		<br/>
 		<br/>

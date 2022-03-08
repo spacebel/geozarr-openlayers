@@ -7,16 +7,12 @@ let canvas;
 	This function will be called at startup
 */
 async function startup(){
-	//	initialize list of Zarr
-			
+	//	initialize Zarr	URL
 	zarrUrl = "https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/s2_v1_multiscales_4326/T33UWT/20210103";
 	
 	//set default values to input fields
 	setInputValue('zarrUrl',zarrUrl);		
-	setInputValue('redBand',redBand);
-	setInputValue('greenBand',greenBand);
-	setInputValue('blueBand',blueBand);
-
+	setBandFieldsWithPredefinedValues();
 	
 	// call loadZarr(...) function
 	canvas = document.createElement('canvas');  
@@ -244,24 +240,14 @@ function generateSubsettingForm(){
 			subsettingForm.appendChild(lineReturn);
 			subsettingForm.appendChild(lineReturn);
 		}
-		
 	});
-
 }
 
 function clearSubsettingForm(){
 	console.log("Clearing subsetting form...")
+
 	subsettingForm = document.getElementById("subsetting-form");
 	subsettingForm.innerHTML="";
-	
-	//let dimensions = getDimensions();
-
-	//dimensions.forEach( dim =>{
-	//
-	//	document.getElementById(dim+"_start").value ='';
-	//	document.getElementById(dim+"_end").value ='';
-	//});
-
 }
 
 function getSubsetValues(){
@@ -281,6 +267,33 @@ function getSubsetValues(){
 	});
 
 	return subset;
+}
+
+function setBandFieldsWithPredefinedValues(){
+
+	let selectionField = document.getElementById("zarrUrl");
+	let productName = selectionField.options[selectionField.selectedIndex].label;
+	console.log("Product selected: "+productName);
+
+	switch(productName){
+		case "Prisma":
+			setInputValue('redBand',"/reflectance[21]");
+			setInputValue('greenBand',"/reflectance[17]");
+			setInputValue('blueBand',"/reflectance[13]");
+			break;
+		case "Sentinel-2":
+			setInputValue('redBand',"B04/band_data[0]");
+			setInputValue('greenBand',"B03/band_data[0]");
+			setInputValue('blueBand',"B02/band_data[0]");
+			break;
+	}
+}
+
+function productSelectionChanged(){
+
+	clearSubsettingForm();
+	setBandFieldsWithPredefinedValues();
+	//changeZoomLevel(3);
 }
 
 function getSelectedProjectionCode(){
