@@ -3,6 +3,7 @@ let zarrUrls = [];
 let zarrUrl;	
 let currentIndex = 0;
 let canvas;
+let defaultZoomLevel = 3;
 /*
 	This function will be called at startup
 */
@@ -319,7 +320,7 @@ function productSelectionChanged(){
 	clearSubsettingForm();
 	setBandFieldsWithPredefinedValues();
 	setProjectionForCurrentProduct();
-	//changeZoomLevel(3);
+	changeZoomLevel(defaultZoomLevel);
 }
 
 function getSelectedProjectionCode(){
