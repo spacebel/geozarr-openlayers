@@ -34,6 +34,9 @@ async function loadZarr(zarrUrl, canvas, subsetting = []) {
             const arrs = await Promise.all(
                 paths.map(async p => {
                     const name = `${p}`; //Name of the band	
+					if(p.indexOf('[') > 0){ //If band path contains subseeting removes it
+						p = p.substring(0,p.indexOf('['))
+					}
                     const arr = await grp.getItem(p + "/" + zoomLevel + "/band_data");
                     
                     //Fetch array attributes ad discover dimensions from it.
@@ -263,7 +266,7 @@ function fillImage(imageData,data, yData, xData){
  * @returns 
  */
 async function getZarrData(subset, dimensionArrays,zarrArrays){
-	let slices = [firstDimSlicing];//Initialize slicing array with slicing on first dimension (band dim for S2)
+	let slices = [];//Initialize slicing array with slicing on first dimension (band dim for S2)
 						
 	Object.keys(subset).forEach( dim =>{
 		let value = subset[dim];
@@ -306,9 +309,18 @@ async function getZarrData(subset, dimensionArrays,zarrArrays){
 		let bandName = bandPath;
 		console.log("Creating promise for band: "+bandName);
 		//if band[...] -> extract index and use it as first dimension slicing
+		let firstDimensionSlicing = null;
+		let bandSlices = [...slices] //initalize array with subsetting slices
+		if(bandPath.indexOf('[') > 0 && bandPath.indexOf(']') > 0){
+			firstDimensionSlicing= bandPath.substring(bandPath.indexOf('[')+1,bandPath.indexOf(']'));
+			firstDimensionSlicing = Number(firstDimensionSlicing);
+			bandSlices.unshift(firstDimensionSlicing);
+			console.log("Added slice index, now slicing with:");
+			console.log(bandSlices);
+		}
 		//Register data fecthing promise 
 		bandDataFetchingPromises.push(
-			zarrArrays[index].arr.get(slices)
+			zarrArrays[index].arr.get(bandSlices)
 						.then((values)=>{return [bandName,values]})//append band_name/array in the result object.
 		);
 	}
