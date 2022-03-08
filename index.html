@@ -47,10 +47,17 @@
 		<span class="instruction">Enter the Zarr information that you wish to show on the map</span>
 		<br/>
 		<br/>
-		<label for="zarrUrl">Zazz URL:</label>		
+		<label for="zarrUrl">Zarr URL:</label>		
 		<input type="text" id="zarrUrl" name="zarrUrl" size="150"/>		
 		<br/>
-		<br/>		
+		<br/>
+		<label for="projectionCode">Projection code:</label>
+		<select id="projectionCode">
+			<option value="EPSG:4326" selected>EPSG:4326</option>
+			<option value="EPSG:32630">EPSG:32630</option>
+		</select>
+		<br/>
+		<br/>
 		<label>RGB bands:</label>		
 		<input type="text" id="redBand" name="redBand" size="20"/>		
 		<input type="text" id="greenBand" name="greenBand" size="20"/>

@@ -18,7 +18,8 @@ async function startup(){
 	zarrUrls.push(["https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/s2_v1_multiscales/T33UWT/20210120","T33UWT 20/01/2021"]);
 	zarrUrls.push(["https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/s2_v1_multiscales/T33UWT/20210123","T33UWT 23/01/2021"]);			
 				
-	zarrUrl = zarrUrls[currentIndex][0];
+	//zarrUrl = zarrUrls[currentIndex][0];
+	zarrUrl = "https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/prisma_v2_multiscales/20210608/";
 	/*
 		set default values to input fields
 	*/
@@ -80,6 +81,8 @@ async function applyChange(){
 	blueBand = getInputValue('blueBand');
 	setRequestedExtent(getInputValue("extent"))
 	let subset = getSubsetValues();
+	selectedProjection = getSelectedProjectionCode();
+	setProjectionCode(selectedProjection);
 	
 	// call loadZarr(...) function
 	// assign the canvas data URL to the global variable imageURL 
@@ -242,9 +245,16 @@ function getSubsetValues(){
 		
 		let inputStart = document.getElementById(dim+"_start");
 		let inputEnd = document.getElementById(dim+"_end");
-		subset[dim] = { "start": inputStart.value,"end": inputEnd.value};
+		if(inputStart !== null && inputEnd !== null){
+			subset[dim] = { "start": inputStart.value,"end": inputEnd.value};
+		}
 	});
 
 	return subset;
+}
+
+function getSelectedProjectionCode(){
+	projectionField = document.getElementById('projectionCode');
+	return projectionField.options[projectionField.selectedIndex].value;
 }
 

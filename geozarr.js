@@ -1,11 +1,14 @@
-let latitudeName = "y";  //Name used to represent the latitude variable in the zarr file.
-let longitudeName ="x";  //Name used to represent the longitude variable in the zarr file.
+let latitudeName = "latitude";  //Name used to represent the latitude variable in the zarr file.
+let longitudeName ="longitude";  //Name used to represent the longitude variable in the zarr file.
 let extent = [];         //Extent of the Zarr file
 const scaleFactor = 20;  //Factor used for color computation
 const firstDimSlicing = 0;     //Slicing on the zarr array (used for 3D zarr file)
-let redBand = "B04/band_data[0]";   //Name of the red band (group/path)
-let greenBand = "B03/band_data[0]"; //Name of the green band (group/path)
-let blueBand = "B02/band_data[0]";  //Name of the blue band (group/path)
+//let redBand = "B04/band_data[0]";   //Name of the red band (group/path)
+//let greenBand = "B03/band_data[0]"; //Name of the green band (group/path)
+//let blueBand = "B02/band_data[0]";  //Name of the blue band (group/path)
+let redBand = "/reflectance[21]";   //Name of the red band (group/path)
+let greenBand = "/reflectance[17]"; //Name of the green band (group/path)
+let blueBand = "/reflectance[13]";  //Name of the blue band (group/path)
 let requestedExtent = ""
 let subset = []
 let dimensions = []
@@ -40,7 +43,7 @@ async function loadZarr(zarrUrl, canvas, subsetting = []) {
 					}
 
 					let bandPath = "band_data";
-					if(p.indexOf('/') > 0){//If band path contain the name of the array
+					if(p.indexOf('/') > -1){//If band path contain the name of the array
 						//Retrive band array name
 						bandPath = p.substring(p.indexOf('/'));
 						//remove band array name from path (to be able to add zoom level further).
@@ -111,7 +114,8 @@ async function loadZarr(zarrUrl, canvas, subsetting = []) {
 	}
 	else{
 		extent = await buildExtent(yData,xData);
-		console.log("Using default extent")
+		console.log("Using default extent");
+		console.log(extent);
 	}
 
 	// iterate the array to get all data for the requested subset
@@ -328,7 +332,7 @@ async function getZarrData(subset, dimensionArrays,zarrArrays){
 		//if band[...] -> extract index and use it as first dimension slicing
 		let firstDimensionSlicing = null;
 		let bandSlices = [...slices] //initalize array with subsetting slices
-		if(bandPath.indexOf('[') > 0 && bandPath.indexOf(']') > 0){
+		if(bandPath.indexOf('[') > -1 && bandPath.indexOf(']') > -1){
 			firstDimensionSlicing= bandPath.substring(bandPath.indexOf('[')+1,bandPath.indexOf(']'));
 			firstDimensionSlicing = Number(firstDimensionSlicing);
 			bandSlices.unshift(firstDimensionSlicing);
