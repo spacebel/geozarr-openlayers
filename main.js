@@ -200,37 +200,48 @@ function generateSubsettingForm(){
 
 	subsettingForm = document.getElementById("subsetting-form");
 	let dimensions = getDimensions();
+	let dimensionsValues = getDimensionsValues();
+	
 	
 	dimensions.forEach( dim =>{
 		console.log('creating input for dimension: '+dim);
 
-		let label = document.createElement("label");
-		label.setAttribute("value",dim);
-		label.setAttribute("for", dim);
-		label.innerText = dim+" from : ";
-		subsettingForm.appendChild(label);
+		values = dimensionsValues[dim];
+		if(values !== undefined){
+			let min = values.data[0];
+			let max = values.data[values.data.length -1];
+
+			let label = document.createElement("label");
+			label.setAttribute("value",dim);
+			label.setAttribute("for", dim);
+			label.innerText = dim+" from : ";
+			subsettingForm.appendChild(label);
+			
+			let inputStart = document.createElement("input");
+			inputStart.setAttribute("type", "text");
+			inputStart.setAttribute("name", dim);
+			inputStart.setAttribute("id", dim+"_start");
+			inputStart.setAttribute("value",min);
+			subsettingForm.appendChild(inputStart);
+
+			let middleLabel = document.createElement("label");
+			middleLabel.setAttribute("value",dim);
+			middleLabel.setAttribute("for", dim);
+			middleLabel.innerText = " to ";
+			subsettingForm.appendChild(middleLabel);
+
+			let inputEnd = document.createElement("input");
+			inputEnd.setAttribute("type", "text");
+			inputEnd.setAttribute("name", dim);
+			inputEnd.setAttribute("id", dim+"_end");
+			inputEnd.setAttribute("value",max);
+			subsettingForm.appendChild(inputEnd);
+
+			let lineReturn = document.createElement("br");
+			subsettingForm.appendChild(lineReturn);
+			subsettingForm.appendChild(lineReturn);
+		}
 		
-		let inputStart = document.createElement("input");
-		inputStart.setAttribute("type", "text");
-		inputStart.setAttribute("name", dim);
-		inputStart.setAttribute("id", dim+"_start");
-		subsettingForm.appendChild(inputStart);
-
-		let middleLabel = document.createElement("label");
-		middleLabel.setAttribute("value",dim);
-		middleLabel.setAttribute("for", dim);
-		middleLabel.innerText = " to ";
-		subsettingForm.appendChild(middleLabel);
-
-		let inputEnd = document.createElement("input");
-		inputEnd.setAttribute("type", "text");
-		inputEnd.setAttribute("name", dim);
-		inputEnd.setAttribute("id", dim+"_end");
-		subsettingForm.appendChild(inputEnd);
-
-		let lineReturn = document.createElement("br");
-		subsettingForm.appendChild(lineReturn);
-		subsettingForm.appendChild(lineReturn);
 	});
 
 }

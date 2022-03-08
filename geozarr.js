@@ -396,6 +396,10 @@ function getDimensions(){
     return dimensions;
 }
 
+function getDimensionsValues(){
+	return dimensionsArrays;
+}
+
 function getZarrExtent(){
     return extent;
 }
