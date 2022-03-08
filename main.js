@@ -21,6 +21,8 @@ async function startup(){
 	// create a map to display the zarr image
 	createMap();
 	registerResolutionChangeCallback();
+	//TODO: remove: this should be done in map.js
+	changeZoomLevel(defaultZoomLevel);
 	
 	setCurrentZoomButton();
 	generateSubsettingForm();
