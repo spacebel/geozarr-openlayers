@@ -21,14 +21,16 @@ async function startup(){
 	// create a map to display the zarr image
 	createMap();
 	registerResolutionChangeCallback();
-	//TODO: remove: this should be done in map.js
-	changeZoomLevel(defaultZoomLevel);
 	
+	//Set current zoom button
 	setCurrentZoomButton();
+	//Display the subsetting form.
 	generateSubsettingForm();
 	//setDateInfo();
 	//toggleNavButtons();
-	
+
+	//TODO: remove: this should be done in map.js
+	changeZoomLevel(defaultZoomLevel);	
 }
 
 async function navigate(index){
