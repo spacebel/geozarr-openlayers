@@ -10,6 +10,7 @@ let requestedExtent = ""
 let subset = []
 let dimensions = []
 let dimensionsArrays = [];
+let productMaxZoomLevel = 4;
 /*
 	An async function to read Zarr data and then convert it into an image
 */	
@@ -29,6 +30,11 @@ async function loadZarr(zarrUrl, canvas, subsetting = []) {
             
             // open group
             const grp = await zarr.openGroup(store);
+
+			let productZoomLevel = zoomLevel;
+			if(zoomLevel > productMaxZoomLevel){
+				productZoomLevel = productMaxZoomLevel;
+			}
            
             // read date and then concatenate them (flat()) into an array
             const arrs = await Promise.all(
@@ -46,7 +52,7 @@ async function loadZarr(zarrUrl, canvas, subsetting = []) {
 						//remove band array name from path (to be able to add zoom level further).
 						p = p.substring(0,p.indexOf('/'));
 					}
-                    const arr = await grp.getItem(p + "/" + zoomLevel +"/"+ bandPath);
+                    const arr = await grp.getItem(p + "/" + productZoomLevel +"/"+ bandPath);
                     
                     //Fetch array attributes ad discover dimensions from it.
                     //let attributes = await arr.getItem(".zattrs");
@@ -57,7 +63,7 @@ async function loadZarr(zarrUrl, canvas, subsetting = []) {
 					dimensionsArrays = [];
 					for(let dimensionIndex = 0; dimensionIndex < dimensions.length; dimensionIndex += 1){
 						dim = dimensions[dimensionIndex];
-						let dimensionPath = p +"/"+ zoomLevel + "/"+ dim;
+						let dimensionPath = p +"/"+ productZoomLevel + "/"+ dim;
 						let item = await grp.getItem(dimensionPath);
 						let dimName = await item.attrs.getItem("long_name");//use standard_name instead
 						console.log("DimName: "+dimName);
@@ -82,13 +88,6 @@ async function loadZarr(zarrUrl, canvas, subsetting = []) {
 					//Read Longitude & Latitude from arrays of dimensions.
 					xData = dimensionsArrays[longitudeName];
 					yData = dimensionsArrays[latitudeName];
-
-					//Read Longitude & Latitude from zarr file.
-                    //const lonPath = p +"/"+ zoomLevel + "/"+longitudeName;
-                    //xData = await readXYData(grp,lonPath);
-                    //const latPath = p +"/"+ zoomLevel + "/"+latitudeName;
-                    //yData = await readXYData(grp,latPath);
-
 
 					console.log("Dimensions: ");
 					console.log(dimensionsArrays);

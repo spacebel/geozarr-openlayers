@@ -9,7 +9,7 @@ let defaultZoomLevel = 3;
 */
 async function startup(){
 	//	initialize Zarr	URL
-	zarrUrl = "https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/s2_v1_multiscales_4326/T33UWT/20210103";
+	zarrUrl = "https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/s2_v1_multiscales_4326/T33UWT/20210727";
 	
 	//set default values to input fields
 	setInputValue('zarrUrl',zarrUrl);		
