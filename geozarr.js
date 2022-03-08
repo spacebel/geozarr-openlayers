@@ -1,6 +1,6 @@
 let latitudeName;   //Name used to represent the latitude variable in the zarr file.
 let longitudeName; //Name used to represent the longitude variable in the zarr file.
-let extent = [];         //Extent of the Zarr file
+var extent = [];         //Extent of the Zarr file
 const scaleFactor = 20;  //Factor used for color computation
 const firstDimSlicing = 0;     //Slicing on the zarr array (used for 3D zarr file)
 let redBand = "B04/band_data[0]";   //Name of the red band (group/path)
@@ -35,7 +35,7 @@ async function loadZarr(zarrUrl, canvas, subsetting = []) {
 			if(zoomLevel > productMaxZoomLevel){
 				productZoomLevel = productMaxZoomLevel;
 			}
-           
+            dimensions = null;
             // read date and then concatenate them (flat()) into an array
             const arrs = await Promise.all(
                 paths.map(async p => {
@@ -54,40 +54,43 @@ async function loadZarr(zarrUrl, canvas, subsetting = []) {
 					}
                     const arr = await grp.getItem(p + "/" + productZoomLevel +"/"+ bandPath);
                     
-                    //Fetch array attributes ad discover dimensions from it.
-                    //let attributes = await arr.getItem(".zattrs");
-                    let attributes = arr.attrs;
-                    dimensions = await discoverDimensions(attributes);
-                    
-                    //Copy reference of lat/lon arrays in the dictionnary of dimensions (used for subsetting)
-					dimensionsArrays = [];
-					for(let dimensionIndex = 0; dimensionIndex < dimensions.length; dimensionIndex += 1){
-						dim = dimensions[dimensionIndex];
-						let dimensionPath = p +"/"+ productZoomLevel + "/"+ dim;
-						let item = await grp.getItem(dimensionPath);
-						let dimName = await item.attrs.getItem("long_name");//use standard_name instead
-						console.log("DimName: "+dimName);
-						if(dimName){
-							if(dimName === 'longitude'){
-								longitudeName = dim;
-								console.log("Found longitude name: "+dim);
-							}
-							if(dimName === 'latitude'){
-								latitudeName = dim;
-								console.log("Found latitude name: "+dim);
-							}
-						}
-						try{
-							dimensionsArrays[dim] = await item.getRaw(null);
-						} catch(error){
-							console.log("An error occured while reading dimension array "+dim+" : "+error);
-						}
+                    //If not already fetched (by previous band)
+					if(dimensions == null){
+						//Fetch array attributes ad discover dimensions from it.
+						let attributes = arr.attrs;
+						dimensions = await discoverDimensions(attributes);
 						
-					}
+						//Copy reference of lat/lon arrays in the dictionnary of dimensions (used for subsetting)
+						dimensionsArrays = [];
+						for(let dimensionIndex = 0; dimensionIndex < dimensions.length; dimensionIndex += 1){
+							dim = dimensions[dimensionIndex];
+							let dimensionPath = p +"/"+ productZoomLevel + "/"+ dim;
+							let item = await grp.getItem(dimensionPath);
+							let dimName = await item.attrs.getItem("long_name");//use standard_name instead
+							console.log("DimName: "+dimName);
+							if(dimName){
+								if(dimName === 'longitude'){
+									longitudeName = dim;
+									console.log("Found longitude name: "+dim);
+								}
+								if(dimName === 'latitude'){
+									latitudeName = dim;
+									console.log("Found latitude name: "+dim);
+								}
+							}
+							try{
+								dimensionsArrays[dim] = await item.getRaw(null);
+							} catch(error){
+								console.log("An error occured while reading dimension array "+dim+" : "+error);
+							}
+							
+						}
 
-					//Read Longitude & Latitude from arrays of dimensions.
-					xData = dimensionsArrays[longitudeName];
-					yData = dimensionsArrays[latitudeName];
+						//Read Longitude & Latitude from arrays of dimensions.
+						xData = dimensionsArrays[longitudeName];
+						yData = dimensionsArrays[latitudeName];
+					}
+                    
 
 					console.log("Dimensions: ");
 					console.log(dimensionsArrays);
@@ -213,8 +216,7 @@ async function buildExtent(yData,xData){
 		miny = tmpy;
 	}
     // Build the extent
-	extent = [minx,miny,maxx,maxy];
-    return extent;
+    return [minx,miny,maxx,maxy];;
 }
 /**
  * Draw Image to canvas using Zarr values
