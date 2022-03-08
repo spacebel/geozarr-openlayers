@@ -3,9 +3,9 @@ let longitudeName ="x";  //Name used to represent the longitude variable in the 
 let extent = [];         //Extent of the Zarr file
 const scaleFactor = 20;  //Factor used for color computation
 const firstDimSlicing = 0;     //Slicing on the zarr array (used for 3D zarr file)
-let redBand = "B04";   //Name of the red band (group/path)
-let greenBand = "B03"; //Name of the green band (group/path)
-let blueBand = "B02";  //Name of the blue band (group/path)
+let redBand = "B04[0]";   //Name of the red band (group/path)
+let greenBand = "B03[0]"; //Name of the green band (group/path)
+let blueBand = "B02[0]";  //Name of the blue band (group/path)
 let requestedExtent = ""
 let subset = []
 let dimensions = []
@@ -34,10 +34,20 @@ async function loadZarr(zarrUrl, canvas, subsetting = []) {
             const arrs = await Promise.all(
                 paths.map(async p => {
                     const name = `${p}`; //Name of the band	
+					console.log("band path: "+p);
 					if(p.indexOf('[') > 0){ //If band path contains subseeting removes it
 						p = p.substring(0,p.indexOf('['))
 					}
-                    const arr = await grp.getItem(p + "/" + zoomLevel + "/band_data");
+
+					let bandPath = "band_data";
+					if(p.indexOf('/') > 0){//If band path contain the name of the array
+						//Retrive band array name
+						bandPath = p.substring(p.indexOf('/'));
+						//remove band array name from path (to be able to add zoom level further).
+						p = p.substring(0,p.indexOf('/'));
+						console.log("band path: "+p);
+					}
+                    const arr = await grp.getItem(p + "/" + zoomLevel +"/"+ bandPath);
                     
                     //Fetch array attributes ad discover dimensions from it.
                     console.log(arr)
@@ -72,7 +82,12 @@ async function loadZarr(zarrUrl, canvas, subsetting = []) {
 		requestedExtentValues = requestedExtent.split(",")
 		extent = requestedExtentValues.map(Number);
 		console.log("Unsing requested extent")
-	}else if( subsetting[latitudeName] != undefined && subsetting[longitudeName] != undefined){
+
+	//If longitude start & end + latitude start & end are not null or empty.
+	}else if( subsetting[latitudeName] != undefined && subsetting[longitudeName] != undefined
+		 && subsetting[longitudeName].start.length !== 0 && subsetting[longitudeName].end.length != 0
+		 && subsetting[latitudeName].start.length !== 0 && subsetting[latitudeName].end.length != 0){
+
 		minx = Number(subsetting[longitudeName].start);
 		miny = Number(subsetting[latitudeName].start);
 		maxx = Number(subsetting[longitudeName].end);
@@ -273,7 +288,9 @@ async function getZarrData(subset, dimensionArrays,zarrArrays){
 		console.log("Dimension "+dim+" start "+value.start+" end "+value.end);
 
 		
-		if(dimensionArrays[dim] != undefined){
+		if(dimensionArrays[dim] != undefined 
+			&& dimensionArrays[dim].start !== undefined && dimensionArrays[dim].start.length > 0 
+			&& dimensionArrays[dim].end !== undefined && dimensionArrays[dim].end.length > 0){
 			//console.log("dimension array: ");
 			//console.log(dimensionArrays[dim])
 			let startIndex = null, endIndex = null;
