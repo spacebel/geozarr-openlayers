@@ -21,6 +21,7 @@ async function loadZarr(zarrUrl, canvas, subsetting = []) {
 	console.log("Loading zarr subset: ");
 	console.log(subsetting);
 	// asynchronous load 
+	dimensions = null;
 	arrays = await Promise.all(
 		// iterate on bands array defined 
 		Object.entries(bands).map(async ([w,paths]) => {
@@ -35,7 +36,7 @@ async function loadZarr(zarrUrl, canvas, subsetting = []) {
 			if(zoomLevel > productMaxZoomLevel){
 				productZoomLevel = productMaxZoomLevel;
 			}
-            dimensions = null;
+            
             // read date and then concatenate them (flat()) into an array
             const arrs = await Promise.all(
                 paths.map(async p => {
@@ -55,7 +56,7 @@ async function loadZarr(zarrUrl, canvas, subsetting = []) {
                     const arr = await grp.getItem(p + "/" + productZoomLevel +"/"+ bandPath);
                     
                     //If not already fetched (by previous band)
-					if(dimensions == null){
+					if(dimensions === null){
 						//Fetch array attributes ad discover dimensions from it.
 						let attributes = arr.attrs;
 						dimensions = await discoverDimensions(attributes);
@@ -63,7 +64,8 @@ async function loadZarr(zarrUrl, canvas, subsetting = []) {
 						//Copy reference of lat/lon arrays in the dictionnary of dimensions (used for subsetting)
 						dimensionsArrays = [];
 						for(let dimensionIndex = 0; dimensionIndex < dimensions.length; dimensionIndex += 1){
-							dim = dimensions[dimensionIndex];
+							let dim = dimensions[dimensionIndex];
+							console.log("processing dimension: "+dim);
 							let dimensionPath = p +"/"+ productZoomLevel + "/"+ dim;
 							let item = await grp.getItem(dimensionPath);
 							let dimName = await item.attrs.getItem("long_name");//use standard_name instead
