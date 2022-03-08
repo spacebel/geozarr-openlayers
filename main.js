@@ -19,7 +19,8 @@ async function startup(){
 	zarrUrls.push(["https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/s2_v1_multiscales/T33UWT/20210123","T33UWT 23/01/2021"]);			
 				
 	//zarrUrl = zarrUrls[currentIndex][0];
-	zarrUrl = "https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/prisma_v2_multiscales/20210608/";
+	zarrUrl = "https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/s2_v1_multiscales_4326/T33UWT/20210103";
+	//zarrUrl = "https://storage.sbg.cloud.ovh.net/v1/AUTH_d40770b0914c46bfb19434ae3e97ae19/hdsa-public/prisma_v2_multiscales/20210608/";
 	/*
 		set default values to input fields
 	*/

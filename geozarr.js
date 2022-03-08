@@ -1,14 +1,14 @@
-let latitudeName = "latitude";  //Name used to represent the latitude variable in the zarr file.
-let longitudeName ="longitude";  //Name used to represent the longitude variable in the zarr file.
+let latitudeName;   //Name used to represent the latitude variable in the zarr file.
+let longitudeName; //Name used to represent the longitude variable in the zarr file.
 let extent = [];         //Extent of the Zarr file
 const scaleFactor = 20;  //Factor used for color computation
 const firstDimSlicing = 0;     //Slicing on the zarr array (used for 3D zarr file)
-//let redBand = "B04/band_data[0]";   //Name of the red band (group/path)
-//let greenBand = "B03/band_data[0]"; //Name of the green band (group/path)
-//let blueBand = "B02/band_data[0]";  //Name of the blue band (group/path)
-let redBand = "/reflectance[21]";   //Name of the red band (group/path)
-let greenBand = "/reflectance[17]"; //Name of the green band (group/path)
-let blueBand = "/reflectance[13]";  //Name of the blue band (group/path)
+let redBand = "B04/band_data[0]";   //Name of the red band (group/path)
+let greenBand = "B03/band_data[0]"; //Name of the green band (group/path)
+let blueBand = "B02/band_data[0]";  //Name of the blue band (group/path)
+//let redBand = "/reflectance[21]";   //Name of the red band (group/path)
+//let greenBand = "/reflectance[17]"; //Name of the green band (group/path)
+//let blueBand = "/reflectance[13]";  //Name of the blue band (group/path)
 let requestedExtent = ""
 let subset = []
 let dimensions = []
@@ -63,6 +63,7 @@ async function loadZarr(zarrUrl, canvas, subsetting = []) {
 						let dimensionPath = p +"/"+ zoomLevel + "/"+ dim;
 						let item = await grp.getItem(dimensionPath);
 						let dimName = await item.attrs.getItem("long_name");//use standard_name instead
+						console.log("DimName: "+dimName);
 						if(dimName){
 							if(dimName === 'longitude'){
 								longitudeName = dim;
@@ -73,12 +74,24 @@ async function loadZarr(zarrUrl, canvas, subsetting = []) {
 								console.log("Found latitude name: "+dim);
 							}
 						}
-						dimensionsArrays[dim] = await item.getRaw(null);
+						try{
+							dimensionsArrays[dim] = await item.getRaw(null);
+						} catch(error){
+							console.log("An error occured while reading dimension array "+dim+" : "+error);
+						}
+						
 					}
 
 					//Read Longitude & Latitude from arrays of dimensions.
 					xData = dimensionsArrays[longitudeName];
 					yData = dimensionsArrays[latitudeName];
+
+					//Read Longitude & Latitude from zarr file.
+                    //const lonPath = p +"/"+ zoomLevel + "/"+longitudeName;
+                    //xData = await readXYData(grp,lonPath);
+                    //const latPath = p +"/"+ zoomLevel + "/"+latitudeName;
+                    //yData = await readXYData(grp,latPath);
+
 
 					console.log("Dimensions: ");
 					console.log(dimensionsArrays);
