@@ -48,30 +48,40 @@ async function loadZarr(zarrUrl, canvas, subsetting = []) {
 						bandPath = p.substring(p.indexOf('/'));
 						//remove band array name from path (to be able to add zoom level further).
 						p = p.substring(0,p.indexOf('/'));
-						console.log("band path: "+p);
 					}
                     const arr = await grp.getItem(p + "/" + zoomLevel +"/"+ bandPath);
                     
                     //Fetch array attributes ad discover dimensions from it.
-                    console.log(arr)
                     //let attributes = await arr.getItem(".zattrs");
                     let attributes = arr.attrs;
                     dimensions = await discoverDimensions(attributes);
                     
-                    //Read Longitude & Latitude from zarr file.
-                    const lonPath = p +"/"+ zoomLevel + "/"+longitudeName;
-                    xData = await readXYData(grp,lonPath);
-                    const latPath = p +"/"+ zoomLevel + "/"+latitudeName;
-                    yData = await readXYData(grp,latPath);
-                    
                     //Copy reference of lat/lon arrays in the dictionnary of dimensions (used for subsetting)
 					dimensionsArrays = [];
-                    dimensionsArrays[longitudeName] = xData;
-                    dimensionsArrays[latitudeName] = yData;
+					for(let dimensionIndex = 0; dimensionIndex < dimensions.length; dimensionIndex += 1){
+						dim = dimensions[dimensionIndex];
+						let dimensionPath = p +"/"+ zoomLevel + "/"+ dim;
+						let item = await grp.getItem(dimensionPath);
+						let dimName = await item.attrs.getItem("long_name");//use standard_name instead
+						if(dimName){
+							if(dimName === 'longitude'){
+								longitudeName = dim;
+								console.log("Found longitude name: "+dim);
+							}
+							if(dimName === 'latitude'){
+								latitudeName = dim;
+								console.log("Found latitude name: "+dim);
+							}
+						}
+						dimensionsArrays[dim] = await item.getRaw(null);
+					}
 
-                   
-                    console.log("Extent: ")
-                    console.log(extent)
+					//Read Longitude & Latitude from arrays of dimensions.
+					xData = dimensionsArrays[longitudeName];
+					yData = dimensionsArrays[latitudeName];
+
+					console.log("Dimensions: ");
+					console.log(dimensionsArrays);
                     
                     return { name, arr };
                 })
