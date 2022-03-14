@@ -81,8 +81,8 @@
 
     </style>
     <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.9.0/build/ol.js"></script>	
-	<script src="./proj4.js"></script>	
-	<script src="./s2.js"></script>
+	<script src="../proj4.js"></script>	
+	<script src="./maja.js"></script>
 </head>
 
 <body onload="startup()">
@@ -122,12 +122,12 @@
 		var zoomLevel = 9;	
 		var zarrUrls = [];		
 		var currentIndex = 0;
-		const scaleFactor = 20;
+		const scaleFactor = 7;
 		const slicing = [0];
-		const redBand = "B04";
-		const greenBand = "B03";
-		const blueBand = "B02";
-		const projCode = "EPSG:32633";
+		const redBand = "B4";
+		const greenBand = "B3";
+		const blueBand = "B2";
+		const projCode = "EPSG:32631";
 	</script>
 </body>
 
