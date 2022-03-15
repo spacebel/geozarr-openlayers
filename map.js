@@ -4,7 +4,7 @@ let projectionCode= "EPSG:32630";
 //let projectionCode = "EPSG:4326";
 const zoomMin = 0;
 const zoomMax = 14;
-let defaultZoomLevel = 8;
+let defaultZoomLevel = 10;
 let zoomLevel = 3;	
 /**
 	create a map to display the zarr image
