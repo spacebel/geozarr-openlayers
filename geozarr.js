@@ -312,10 +312,9 @@ async function getZarrData(subset, dimensionArrays,zarrArrays){
 		let value = subset[dim];
 		console.log("Dimension "+dim+" start "+value.start+" end "+value.end);
 
-		
+		//Verify dimension array is not undefined or empty before computing the requested slice.
 		if(dimensionArrays[dim] != undefined 
-			&& dimensionArrays[dim].start !== undefined && dimensionArrays[dim].start.length > 0 
-			&& dimensionArrays[dim].end !== undefined && dimensionArrays[dim].end.length > 0){
+			&& dimensionArrays[dim].data !== undefined && dimensionArrays[dim].data.length > 0 ){
 			
 			let startIndex = null, endIndex = null;
 			startIndex =  getClosestIndex(parseFloat(value.start),dimensionArrays[dim].data);
@@ -326,6 +325,9 @@ async function getZarrData(subset, dimensionArrays,zarrArrays){
 				dimensionSlice = zarr.slice(startIndex,endIndex);
 			}
 			slices.push(dimensionSlice);
+		}else{
+			console.log("Not slicing on dimension "+dim+" because the coreesponding dimension array is undefined or empty:");
+			console.log(dimensionArrays[dim]);
 		}
 
 	});
