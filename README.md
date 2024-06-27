@@ -1,11 +1,11 @@
 # Readme - GeoZarr Extension
 
-GeoZarr Spec aims to provides a geospatial extension to the Zarr specification (v2). Zarr specifies a protocol and format used for storing Zarr arrays, while the present extension defines **conventions** and recommendations for storing **multidimensional georeferenced grid** of geospatial observations (including rasters). 
+GeoZarr Spec aims to provide a geospatial extension to the Zarr specification (v2). Zarr specifies a protocol and format used for storing Zarr arrays, while the present extension defines **conventions** and recommendations for storing **multidimensional georeferenced grid** of geospatial observations (including rasters). 
 
 This demo prototype provides some basic support of GeoZarr including display, subsetting, dimension discovery, multiscale (zooming overlays). 
 Note that the sample data is hosted on OVH Cloud for a limited period.
 
-Imeplemtation is based on OpenLayers v6.9  (https://openlayers.org/) and ZarrJS (https://github.com/gzuidhof/zarr.js/). 
+Implementation is based on OpenLayers v6.9  (https://openlayers.org/) and ZarrJS (https://github.com/gzuidhof/zarr.js/). 
 
 ## Document and Resources
 
